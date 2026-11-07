@@ -1,1 +1,10 @@
-{ "name": "followpay", "private": true, "dependencies": { "firebase-admin": "^12.7.0" } }
+{
+  "name": "followpay",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Static site: no build step required'"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}
