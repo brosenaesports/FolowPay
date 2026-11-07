@@ -1,1 +1,6 @@
-{ "name": "followpay", "private": true, "dependencies": { "firebase-admin": "^12.7.0" } }
+{
+  "name": "followpay",
+  "private": true,
+  "scripts": { "build": "echo no build needed" },
+  "dependencies": { "firebase-admin": "^12.7.0" }
+}
