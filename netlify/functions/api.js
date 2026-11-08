@@ -31,9 +31,10 @@ exports.handler = async e => {
       return R(200, { ok: true });
     }
     const ur = db.ref('users/' + u.uid);
-    const [us, ps] = await Promise.all([ur.get(), b.action === 'me' ? db.ref('userProfiles/' + u.uid).get() : null]);
-    let me = us.val();
-    if (!me) {
+    const NEED = ['me', 'verifyTask', 'boost', 'refInfo', 'useRef', 'buy'];      // other actions skip this read (faster)
+    const [us, ps] = NEED.includes(b.action) ? await Promise.all([ur.get(), b.action === 'me' ? db.ref('userProfiles/' + u.uid).get() : null]) : [null, null];
+    let me = us ? us.val() : {};
+    if (us && !me) {
       me = { points: 0, guest: u.guest, created: Date.now(), email: u.email || null, name: u.name || null, pic: u.pic || null };
       await ur.set(me);
     }
