@@ -25,12 +25,19 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
 .tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
 @keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
-@media(prefers-reduced-motion:reduce){.tick{animation:none}}
+.full{position:fixed;inset:0;background:#fff;z-index:8;overflow:auto;padding:20px 16px;text-align:center}
+.fin{max-width:420px;margin:0 auto}
+.qr{display:block;width:min(80vw,340px);height:auto;margin:12px auto;padding:8px;border:2px solid #000;border-radius:6px;background:#fff}
+.okc{width:120px;height:120px;margin:0 auto 12px;display:block}
+.okc circle{stroke:#16a34a;stroke-width:3;stroke-dasharray:151;stroke-dashoffset:151;animation:dr .6s ease-out forwards}
+.okc path{stroke:#16a34a;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:dr .4s .5s ease-out forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.tick{animation:none}.okc circle,.okc path{animation:none;stroke-dashoffset:0}}
 .av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
 <body data-page="buy">
 <header><b>FollowPay</b><span id="pts"></span></header><nav><a href="home.html">Home</a><a href="earn.html">Earn</a><a href="boost.html">Boost</a><a href="buy.html" class=on>Buy</a><a href="profiles.html">Profiles</a></nav>
 <main>
-<h1>Buy points</h1><div class="card" id="packs"></div><div class="card" id="pay" hidden></div><h1>Transactions</h1><div id="tx"></div>
+<h1>Buy points</h1><div class="card" id="packs"></div><h1>Transactions</h1><div id="tx"></div>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);
@@ -58,28 +65,33 @@ const PACKS=[[1,10],[20,70],[30,130],[50,300],[100,1000]];
 $('#packs').innerHTML=PACKS.map(([rs,pt],i)=>`<button class="o" data-k="${i}">₹${rs} → ${pt} points</button>`).join('');
 let iv=null,busy=false;
 const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
-const paid=n=>{const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" style="text-align:center" role="alertdialog"><div class="tick">✓</div><b>Payment successful</b><p>+${n} points added to your account</p><button>Great</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON')d.remove()};document.body.append(d)};
-async function check(id,quiet){
+const UPI='<svg width="96" height="40" viewBox="0 0 96 40" role="img" aria-label="UPI"><text x="4" y="30" font-family="system-ui,Arial,sans-serif" font-weight="800" font-style="italic" font-size="30" fill="#000">UPI</text><path d="M70 8l10 12-10 12z" fill="#f97316"/><path d="M80 8l10 12-10 12z" fill="#16a34a"/></svg>';
+const closeFull=()=>{clearInterval(iv);const f=$('#full');if(f)f.remove()};
+const success=n=>{const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" style="text-align:center" role="alertdialog"><svg class="okc" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none"/><path fill="none" d="M14 27l8 8 16-17"/></svg><b>Payment successful</b><p>+${n} points added to your account</p><button>Done</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON')d.remove()};document.body.append(d)};
+async function check(id){
   try{const r=await api('check',{orderId:id});
-    if(r.status==='PAID'){clearInterval(iv);$('#pay').hidden=true;if(r.points!=null)setPts(r.points);if(r.pts)paid(r.pts);loadTx();return true}
-    if(r.status==='EXPIRED'){clearInterval(iv);if($('#ps'))$('#ps').textContent='This order expired. Create a new one.';loadTx()}
-    else if(!quiet)say('Payment not received yet. Try again in a moment.','Not paid yet');
-  }catch(e){if(!quiet)say(e.message)}
+    if(r.status==='PAID'){closeFull();if(r.points!=null)setPts(r.points);if(r.pts)success(r.pts);loadTx();return true}
+    if(r.status==='EXPIRED'){closeFull();loadTx();say('Payment time ended. If you already paid, check Transactions.','Time is up')}
+  }catch(e){}
+  return false;
 }
 function show(o){
-  clearInterval(iv);const el=$('#pay');el.hidden=false;
-  el.innerHTML=`<b>Pay exactly ₹${o.amount}</b><p class="m">Order ${esc(o.id)} · ${o.pts} points · <span id="tm"></span></p><img src="${esc(o.qr)}" alt="UPI QR code" width="220" height="220" style="display:block;margin:8px auto;max-width:100%"><a class="b" href="${esc((o.intent&&o.intent.phonepe)||o.url)}">Pay with PhonePe</a><a class="b o" href="${esc((o.intent&&o.intent.paytm)||o.url)}">Pay with Paytm</a><p class="m" id="ps">Waiting for payment… this page updates by itself.</p>`;
+  closeFull();const f=document.createElement('div');f.className='full';f.id='full';
+  f.innerHTML=`<div class="fin">${UPI}<h1>Pay ₹${esc(o.amount)}</h1><p class="m">Scan with any UPI app and pay the exact amount.</p><img class="qr" src="${esc(o.qr)}" alt="UPI QR code"><p class="m">Order ${esc(o.id)} · ${o.pts} points</p><p><b id="tm"></b></p><p class="m">Waiting for payment… this screen updates by itself.</p><button id="cn" class="o">Cancel</button></div>`;
+  document.body.append(f);
   iv=setInterval(()=>{const left=Math.max(0,Math.round((o.exp-Date.now())/1000));$('#tm').textContent=fmt(left);
-    if(!busy){busy=true;check(o.id,true).finally(()=>busy=false)}
-    if(left<=0){clearInterval(iv);$('#ps').textContent='Time is up. If you already paid, tap Verify under Transactions.'}},1000);
-  el.scrollIntoView({behavior:'smooth'});
+    if(left<=0){closeFull();loadTx();say('Payment time ended. If you already paid, tap Check payment under Transactions.','Time is up');return}
+    if(!busy){busy=true;check(o.id).finally(()=>busy=false)}},1000);
+  $('#cn').onclick=async()=>{const b=$('#cn');b.disabled=true;b.textContent='Cancelling…';clearInterval(iv);
+    try{const r=await api('cancel',{orderId:o.id});if(r.status==='PAID'){if(r.points!=null)setPts(r.points);if(r.pts)success(r.pts)}}catch(e){}
+    closeFull();loadTx()};
 }
 document.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{show(await api('buy',{pack:+b.dataset.k}));loadTx()}catch(e){say(e.message,'Could not create order')}b.disabled=false});
 async function loadTx(){
   try{const {txs}=await api('txs'),now=Date.now();
-    $('#tx').innerHTML=txs.map(x=>{const live=x.status==='PENDING'&&now<x.exp+60000;
-      return `<div class="row"><span>₹${x.rs} · ${x.pts} pts<br><span class="m">${new Date(x.created).toLocaleString()}</span></span><span>${live?`<button data-c="${esc(x.id)}">Verify</button>`:x.status==='PENDING'?'EXPIRED':x.status}</span></div>`}).join('')||'<p class="m">No transactions yet.</p>';
-    $('#tx').querySelectorAll('[data-c]').forEach(b=>b.onclick=async()=>{const x=txs.find(t=>t.id===b.dataset.c);if(await check(x.id,false)!==true&&x.exp>Date.now())show(x)});
+    const list=txs.filter(x=>x.status==='PAID'||(x.status==='PENDING'&&now<x.exp+60000));
+    $('#tx').innerHTML=list.map(x=>`<div class="row"><span>₹${x.rs} · ${x.pts} pts<br><span class="m">${new Date(x.created).toLocaleString()}</span></span><span>${x.status==='PAID'?'<b style="color:#16a34a">✓ Paid</b>':`<button data-c="${esc(x.id)}">Check payment</button>`}</span></div>`).join('')||'<p class="m">No transactions yet.</p>';
+    $('#tx').querySelectorAll('[data-c]').forEach(b=>b.onclick=async()=>{const x=list.find(t=>t.id===b.dataset.c);if(await check(x.id)!==true&&x.exp>Date.now())show(x)});
   }catch(e){say(e.message)}
 }
 start().catch(()=>{});loadTx();
