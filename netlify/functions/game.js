@@ -10,13 +10,18 @@ const TYPES = { youtube: ['subscribe', 'like', 'watch'], instagram: ['follow', '
 const key = h => h.toLowerCase().replace(/^@/, '').replace(/\./g, ',');
 const rew = o => o.type === 'watch' ? PM * o.mins : REWARD[o.type];
 
+let oc = { t: 0, v: null };
 module.exports = async (b, u, me, ur, R) => {
   const a = b.action, p = b.platform;
   if (!['tasks', 'startTask', 'verifyTask', 'boost', 'orders'].includes(a)) return null;
-  const ids = async () => (await db.ref('orders').limitToLast(200).get()).val() || {};
+  const ids = async fresh => {                                      // warm servers reuse the order list for 3 seconds
+    if (!fresh && oc.v && Date.now() - oc.t < 3000) return oc.v;
+    const v = (await db.ref('orders').limitToLast(200).get()).val() || {};
+    oc = { t: Date.now(), v }; return v;
+  };
 
   if (a === 'orders') {
-    const o = await ids();
+    const o = await ids(true);
     return R(200, { orders: Object.values(o).filter(x => x.uid === u.uid && x.platform === p).reverse() });
   }
   if (a === 'tasks') {
@@ -25,7 +30,7 @@ module.exports = async (b, u, me, ur, R) => {
     if (!ms.exists()) return R(400, { error: 'Link a profile first on the Profiles page' });
     const skip = Array.isArray(b.skip) ? b.skip : [];
     const c = Object.entries(o).filter(([id, x]) => x.platform === p && (!b.type || x.type === b.type) && x.uid !== u.uid && (x.done || 0) < x.qty && !skip.includes(id))
-      .sort((x, y) => W[y[1].tier] - W[x[1].tier] || x[1].created - y[1].created).slice(0, 15);
+      .sort((x, y) => W[y[1].tier] - W[x[1].tier] || x[1].created - y[1].created).slice(0, 8);
     const free = await Promise.all(c.map(async ([id]) => !(await db.ref(`done/${id}/${u.uid}`).get()).exists()));
     const list = c.filter((_, i) => free[i]), t = list[0];
     return R(200, { left: list.length, task: t && { id: t[0], type: t[1].type, tier: t[1].tier, handle: t[1].handle, reward: rew(t[1]), mins: t[1].mins || null,
