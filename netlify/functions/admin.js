@@ -13,7 +13,7 @@ module.exports = async (b, R) => {
   if (a === 'admLogin') {
     const lk = (await db.ref('config/adminLock').get()).val() || {};
     if ((lk.until || 0) > Date.now()) return R(429, { error: 'Too many wrong attempts. Try again in 10 minutes.' });
-    const h = (await db.ref('config/adminHash').get()).val(), pw = String(b.password || '');
+    const h = (await db.ref('config/adminHash').get()).val(), pw = String(b.password || '').trim();   // ignore stray spaces from pasting
     let good = false;
     if (h) { const [salt, hx] = h.split(':'); good = crypto.timingSafeEqual(Buffer.from(hashPw(pw, salt)), Buffer.from(hx)); }
     else { const d = process.env.ADMIN_PASSWORD || DEFAULT_PW; good = pw.length === d.length && crypto.timingSafeEqual(Buffer.from(pw), Buffer.from(d)); }
@@ -28,7 +28,7 @@ module.exports = async (b, R) => {
   if (!valid(b.atoken)) return R(403, { error: 'Admin session ended. Log in again.' });
 
   if (a === 'admSetPw') {
-    const pw = String(b.password || '');
+    const pw = String(b.password || '').trim();
     if (pw.length < 8) return R(400, { error: 'Use at least 8 characters' });
     const salt = crypto.randomBytes(8).toString('hex');
     await db.ref('config/adminHash').set(salt + ':' + hashPw(pw, salt));
