@@ -1,4 +1,4 @@
-const { db, auth, guestToken, crypto, bad } = require('./lib');
+const { db, auth, sess, crypto, bad } = require('./lib');
 const R = (c, b) => ({ statusCode: c, headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) });
 const RE = { youtube: /^@[A-Za-z0-9._-]{3,30}$/, instagram: /^[A-Za-z0-9._]{1,30}$/ };
 const key = h => h.toLowerCase().replace(/^@/, '').replace(/\./g, ',');
@@ -10,24 +10,27 @@ exports.handler = async e => {
   let b; try { b = JSON.parse(e.body || '{}'); } catch { return R(400, { error: 'Bad request' }); }
   try {
     if (b.action === 'guest') {
-      const id = crypto.randomBytes(12).toString('hex');
-      await db.ref('users/g_' + id).set({ points: 0, guest: true, created: Date.now() });
-      return R(200, { token: guestToken(id) });
+      const uid = 'g_' + crypto.randomBytes(12).toString('hex');
+      await db.ref('users/' + uid).set({ points: 0, guest: true, created: Date.now() });
+      return R(200, { token: sess(uid) });
     }
     const u = await auth(b.token);
     const ur = db.ref('users/' + u.uid);
-    let me = (await ur.get()).val();
+    const [us, ps] = await Promise.all([ur.get(), b.action === 'me' ? db.ref('userProfiles/' + u.uid).get() : null]);
+    let me = us.val();
     if (!me) {
       me = { points: 0, guest: u.guest, created: Date.now(), email: u.email || null, name: u.name || null, pic: u.pic || null };
       await ur.set(me);
     }
-    if (b.action === 'me') {
-      const profiles = (await db.ref('userProfiles/' + u.uid).get()).val() || {};
-      return R(200, { user: me, profiles });
-    }
-    const g = await require('./game')(b, u, me, ur, R); if (g) return g;
-    const p = b.platform, h = String(b.handle || '').trim();
-    if (!RE[p] || !RE[p].test(h)) return R(400, { error: p === 'youtube' ? 'Enter a handle like @AKGAMER-s8s' : 'Enter a valid username' });
+    if (b.action === 'login') return R(200, { token: sess(u.uid) });
+    if (b.action === 'me') return R(200, { user: me, profiles: ps.val() || {} });
+    const g = (await require('./game')(b, u, me, ur, R)) || (await require('./pay')(b, u, me, ur, R));
+    if (g) return g;
+    const p = b.platform; let h = String(b.handle || '').trim();
+    if (!RE[p]) return R(400, { error: 'Unknown platform' });
+    if (p === 'youtube' && h && h[0] !== '@') h = '@' + h;
+    if (p === 'instagram') h = h.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').replace(/[/?].*$/, '');
+    if (!RE[p].test(h)) return R(400, { error: p === 'youtube' ? 'Enter a handle like @AKGAMER-s8s' : 'Enter a valid Instagram username' });
     const k = key(h), mine = db.ref(`userProfiles/${u.uid}/${p}`);
     if (b.action === 'bind') {
       const have = (await mine.get()).val() || {};
