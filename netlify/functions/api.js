@@ -1,4 +1,4 @@
-const { db, auth, guestToken, crypto } = require('./lib');
+const { db, auth, guestToken, crypto, bad } = require('./lib');
 const R = (c, b) => ({ statusCode: c, headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) });
 const RE = { youtube: /^@[A-Za-z0-9._-]{3,30}$/, instagram: /^[A-Za-z0-9._]{1,30}$/ };
 const key = h => h.toLowerCase().replace(/^@/, '').replace(/\./g, ',');
@@ -6,6 +6,7 @@ const DAY = 864e5;
 
 exports.handler = async e => {
   if (e.httpMethod !== 'POST') return R(405, { error: 'POST only' });
+  if (bad) return R(500, { error: bad });
   let b; try { b = JSON.parse(e.body || '{}'); } catch { return R(400, { error: 'Bad request' }); }
   try {
     if (b.action === 'guest') {
