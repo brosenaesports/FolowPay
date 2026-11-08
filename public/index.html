@@ -1,86 +1,65 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FollowPay – Earn points, grow your YouTube and Instagram</title>
-<meta name="description" content="Earn points by subscribing, following and liking. Spend them to grow your own YouTube channel or Instagram profile.">
-<meta property="og:site_name" content="FollowPay"><meta property="og:title" content="FollowPay"><meta property="og:type" content="website"><meta property="og:image" content="/logo.png">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earn points, grow your YouTube and Instagram – FollowPay</title><meta name="description" content="Earn points by subscribing, following and liking. Spend them to grow your own YouTube channel or Instagram profile."><meta property="og:site_name" content="FollowPay"><meta property="og:title" content="FollowPay"><meta property="og:type" content="website"><meta property="og:image" content="/logo.png"><script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebSite","name":"FollowPay","url":"https://folowpay.netlify.app/"},{"@context":"https://schema.org","@type":"Organization","name":"FollowPay","url":"https://folowpay.netlify.app/","logo":"https://folowpay.netlify.app/logo.png"}]</script>
 <link rel="icon" href="/logo.png">
-<script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebSite","name":"FollowPay","url":"https://folowpay.netlify.app/"},{"@context":"https://schema.org","@type":"Organization","name":"FollowPay","url":"https://folowpay.netlify.app/","logo":"https://folowpay.netlify.app/logo.png"}]</script>
-<style>
-*{box-sizing:border-box}
+<style>*{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff;color:#000}
 header{display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;padding:16px;border-bottom:2px solid #000}
 header b{font-size:1.25rem;letter-spacing:-.02em}
+nav{display:flex;gap:6px;max-width:520px;margin:0 auto;padding:10px 16px 0}
+nav a{flex:1;text-align:center;padding:8px 4px;border:2px solid #000;border-radius:6px;color:#000;text-decoration:none;font-weight:600;font-size:.9rem}
+nav a.on{background:#000;color:#fff}
 main{max-width:520px;margin:0 auto;padding:8px 16px 40px}
-h1{font-size:1.7rem;line-height:1.15;margin:.3em 0;letter-spacing:-.02em}
+h1{font-size:1.6rem;line-height:1.15;margin:.4em 0;letter-spacing:-.02em}
 .card{border:2px solid #000;border-radius:6px;padding:16px;margin:16px 0}
-button{font:inherit;font-weight:600;width:100%;padding:13px 16px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#000;color:#fff;cursor:pointer}
-button.o{background:#fff;color:#000}
-button:focus-visible,input:focus-visible{outline:3px solid #000;outline-offset:2px}
-input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid #000;border-radius:6px}
+button,a.b{display:block;font:inherit;font-weight:600;width:100%;padding:13px 16px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#000;color:#fff;cursor:pointer;text-align:center;text-decoration:none}
+.o{background:#fff!important;color:#000!important}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #000;outline-offset:2px}
+input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#fff;color:#000}
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
 .row button{width:auto;margin:0;padding:6px 12px}
 .m{color:#555;font-size:.9rem;margin:.4em 0}
-.tabs{display:flex;gap:6px}
-</style></head>
-<body>
+#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+<body data-p="index">
 <header><b>FollowPay</b><span id="pts"></span></header>
-<main id="v"></main>
+<main><div id="msg" hidden></div>
+<div class="card"><h1>Earn points. Grow your channel.</h1><p class="m">Sign in with Google to keep your points safe, or start as a guest.</p>
+<button id="g">Continue with Google</button><button id="s" class="o">Continue without login</button>
+<p class="m">Guest points stay on this device until you link Google.</p></div>
+</main>
 <script type="module">
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {getAuth,GoogleAuthProvider,signInWithPopup,signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 const auth=getAuth(initializeApp({apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"}));
-const $=s=>document.querySelector(s),v=$('#v');
-let guest=localStorage.getItem('fp_guest'),plat=null;
+const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const tok=async()=>auth.currentUser?auth.currentUser.getIdToken():guest;
+const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const PL={youtube:'YouTube',instagram:'Instagram'};
+let guest=localStorage.getItem('fp_guest');if(guest==='undefined'||guest==='null')guest=null;
+const plat=sessionStorage.getItem('plat');
 async function api(action,x={}){
-  const r=await fetch('/api',{method:'POST',body:JSON.stringify({action,token:await tok(),...x})});
-  const j=await r.json(); if(!r.ok) throw new Error(j.error); return j;
+  const t=auth.currentUser?await auth.currentUser.getIdToken():guest;
+  let r,j;
+  try{r=await fetch('/api',{method:'POST',body:JSON.stringify({action,token:t,...x})});j=await r.json()}catch(e){throw new Error('Cannot reach the server. Check your internet and try again.')}
+  if(r.status===401){localStorage.removeItem('fp_guest');location.href='index.html';throw new Error('Please sign in again')}
+  if(!r.ok)throw new Error(j.error||'Server error');
+  return j;
 }
-function login(){
-  $('#pts').textContent='';
-  v.innerHTML=`<div class=card><h1>Earn points. Grow your channel.</h1><p class=m>Sign in with Google to keep your points safe, or start as a guest.</p><button id=g>Continue with Google</button><button id=s class=o>Continue without login</button><p class=m>Guest points stay on this device until you link Google.</p></div>`;
-  $('#g').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(()=>alert('Google sign-in failed. Try again.'));
-  $('#s').onclick=async()=>{const r=await fetch('/api',{method:'POST',body:JSON.stringify({action:'guest'})});guest=(await r.json()).token;localStorage.setItem('fp_guest',guest);boot()};
+async function start(){
+  await auth.authStateReady();
+  if(!auth.currentUser&&!guest){location.href='index.html';throw new Error('login')}
+  try{const r=await api('me');$('#pts').textContent=r.user.points+' points';return r}catch(e){say(e.message);throw e}
 }
-function pick(){
-  v.innerHTML=`<div class=card><h1>Where do you want to earn today?</h1><button data-p=youtube>YouTube</button><button data-p=instagram>Instagram</button></div>`;
-  v.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{plat=b.dataset.p;home()});
-}
-let tab='earn';
-async function home(){
-  const r=await api('me');$('#pts').textContent=r.user.points+' points';
-  const yt=plat==='youtube',list=Object.values(r.profiles[plat]||{});
-  v.innerHTML=`<div class=row style="border:0"><h1>${yt?'YouTube':'Instagram'}</h1><button class=o id=sw>Switch</button></div><div class=tabs>${[['earn','Earn'],['boost','Boost'],['prof','Profiles']].map(([x,n])=>`<button class="${x===tab?'':'o'}" data-t=${x}>${n}</button>`).join('')}</div><div id=t></div>`;
-  $('#sw').onclick=pick;
-  v.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;home()});
-  const t=$('#t');
-  try{await {earn,boost,prof}[tab](t,list,yt)}catch(e){t.innerHTML=`<p class=m>${esc(e.message)}</p>`}
-}
-async function earn(t,list){
-  if(!list.length){t.innerHTML='<p class=m>Link a profile in the Profiles tab before you earn.</p>';return}
-  const j=await api('tasks',{platform:plat});
-  t.innerHTML=j.tasks.map(x=>`<div class=card><b>${x.type} · ${esc(x.handle)}</b><p class=m>${x.tier} · +${x.reward} points</p><button class=o data-o="${x.id}" data-l="${esc(x.link)}">Open</button><button data-v="${x.id}">Verify</button></div>`).join('')||'<p class=m>No tasks right now. Check back soon.</p>';
-  t.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{window.open(b.dataset.l,'_blank','noopener');api('startTask',{orderId:b.dataset.o})});
-  t.querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{try{const r=await api('verifyTask',{orderId:b.dataset.v});alert('+'+r.reward+' points');home()}catch(e){alert(e.message)}});
-}
-async function boost(t,list,yt){
-  if(!list.length){t.innerHTML='<p class=m>Link a profile first.</p>';return}
-  const o=(await api('orders',{platform:plat})).orders;
-  t.innerHTML=`<div class=card><select id=bp>${list.map(p=>`<option>${esc(p.handle)}</option>`).join('')}</select><select id=bt>${(yt?['subscribe','like']:['follow','like']).map(x=>`<option>${x}</option>`).join('')}</select><select id=bl><option value=normal>Normal · 3 points each</option><option value=premium>Premium · 4 points each</option><option value=ultra>Ultra · 5 points each</option></select><input id=bq type=number min=1 max=1000 value=10><input id=bk placeholder="Video or reel link (subscribe and like)"><button id=bg>Create order</button><p class=m>Likes cost 2 points each and ignore the tier. Higher tiers are shown to earners first.</p></div>${o.map(x=>`<div class=row><span>${x.type} · ${esc(x.handle)} · ${x.tier}</span><span>${x.done||0}/${x.qty}</span></div>`).join('')}`;
-  $('#bg').onclick=async()=>{try{await api('boost',{platform:plat,handle:$('#bp').value,type:$('#bt').value,tier:$('#bl').value,qty:+$('#bq').value,link:$('#bk').value});home()}catch(e){alert(e.message)}};
-}
-function prof(t,list,yt){
-  t.innerHTML=`<div class=card><p class=m>Link up to 3 ${yt?'channels':'accounts'}. You can remove one 24 hours after linking it.</p>${list.map(p=>`<div class=row><span>${esc(p.handle)}</span><button class=o data-h="${esc(p.handle)}">Remove</button></div>`).join('')||'<p class=m>No profiles linked yet.</p>'}</div><div class=card><input id=h placeholder="${yt?'@AKGAMER-s8s':'Instagram username'}" autocapitalize=off autocomplete=off><button id=a>Link profile</button></div><button class=o id=lo>Log out</button>`;
-  $('#a').onclick=()=>act('bind',$('#h').value);
-  t.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>act('remove',b.dataset.h));
-  $('#lo').onclick=async()=>{await signOut(auth);localStorage.removeItem('fp_guest');guest=null;boot()};
-}
-async function act(a,h){try{await api(a,{platform:plat,handle:h});home()}catch(e){alert(e.message)}}
-async function boot(){
-  if(!auth.currentUser&&!guest) return login();
-  try{await api('me');pick()}catch(e){localStorage.removeItem('fp_guest');guest=null;login()}
-}
-onAuthStateChanged(auth,boot);
+const logout=async()=>{await signOut(auth);localStorage.removeItem('fp_guest');sessionStorage.clear();location.href='index.html'};
+if(!plat&&!['index','home'].includes(document.body.dataset.p)){location.href='home.html'}
+const go=()=>{sessionStorage.removeItem('plat');location.href='home.html'};
+(async()=>{await auth.authStateReady();if(auth.currentUser||guest)go()})();
+$('#g').onclick=async()=>{say('');try{await signInWithPopup(auth,new GoogleAuthProvider());go()}catch(e){
+  say(e.code==='auth/unauthorized-domain'?'Add folowpay.netlify.app in Firebase → Authentication → Settings → Authorized domains.':
+      e.code==='auth/operation-not-allowed'?'Turn on Google in Firebase → Authentication → Sign-in method.':
+      e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':'Google sign-in failed: '+(e.code||e.message))}};
+$('#s').onclick=async()=>{say('');try{
+  const r=await fetch('/api',{method:'POST',body:JSON.stringify({action:'guest'})});const j=await r.json();
+  if(!r.ok||!j.token)throw new Error(j.error||'Server error');
+  localStorage.setItem('fp_guest',j.token);go()}catch(e){say(e.message)}};
 </script></body></html>
