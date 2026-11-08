@@ -19,9 +19,8 @@ module.exports = async (b, u, me, ur, R) => {
   }
   if (a === 'tasks') {
     if (!TYPES[p]) return R(400, { error: 'Unknown platform' });
-    const mine = (await db.ref(`userProfiles/${u.uid}/${p}`).get()).val();
-    if (!mine) return R(400, { error: 'Link a profile first' });
-    const o = await ids();
+    const [ms, o] = await Promise.all([db.ref(`userProfiles/${u.uid}/${p}`).get(), ids()]);
+    if (!ms.exists()) return R(400, { error: 'Link a profile first' });
     const c = Object.entries(o).filter(([, x]) => x.platform === p && x.uid !== u.uid && (x.done || 0) < x.qty)
       .sort((x, y) => W[y[1].tier] - W[x[1].tier] || x[1].created - y[1].created).slice(0, 30);
     const free = await Promise.all(c.map(async ([id]) => !(await db.ref(`done/${id}/${u.uid}`).get()).exists()));
