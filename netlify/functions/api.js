@@ -69,6 +69,8 @@ exports.handler = async e => {
     }
     return R(400, { error: 'Unknown action' });
   } catch (err) {
-    return err.message === 'auth' ? R(401, { error: 'Please sign in again' }) : R(500, { error: 'Server error' });
+    if (err.message === 'auth') return R(401, { error: 'Please sign in again' });
+    console.error(err);
+    return R(500, { error: 'Server error: ' + String(err.message).slice(0, 140) });
   }
 };
