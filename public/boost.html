@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boost – FollowPay</title><meta name="description" content="Earn points by subscribing, following and liking. Spend them to grow your own YouTube channel or Instagram profile."><meta name="robots" content="noindex">
+<link rel="icon" href="/logo.png">
+<style>*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff;color:#000}
+header{display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;padding:16px;border-bottom:2px solid #000}
+header b{font-size:1.25rem;letter-spacing:-.02em}
+nav{display:flex;gap:6px;max-width:520px;margin:0 auto;padding:10px 16px 0}
+nav a{flex:1;text-align:center;padding:8px 4px;border:2px solid #000;border-radius:6px;color:#000;text-decoration:none;font-weight:600;font-size:.9rem}
+nav a.on{background:#000;color:#fff}
+main{max-width:520px;margin:0 auto;padding:8px 16px 40px}
+h1{font-size:1.6rem;line-height:1.15;margin:.4em 0;letter-spacing:-.02em}
+.card{border:2px solid #000;border-radius:6px;padding:16px;margin:16px 0}
+button,a.b{display:block;font:inherit;font-weight:600;width:100%;padding:13px 16px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#000;color:#fff;cursor:pointer;text-align:center;text-decoration:none}
+.o{background:#fff!important;color:#000!important}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #000;outline-offset:2px}
+input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#fff;color:#000}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
+.row button{width:auto;margin:0;padding:6px 12px}
+.m{color:#555;font-size:.9rem;margin:.4em 0}
+#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+<body data-p="boost">
+<header><b>FollowPay</b><span id="pts"></span></header><nav><a href="home.html">Platform</a><a href="earn.html">Earn</a><a href="boost.html" class=on>Boost</a><a href="profiles.html">Profiles</a></nav>
+<main><div id="msg" hidden></div>
+<h1><span id="pl"></span> · Boost</h1><div id="t"></div>
+</main>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {getAuth,GoogleAuthProvider,signInWithPopup,signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+const auth=getAuth(initializeApp({apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"}));
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const PL={youtube:'YouTube',instagram:'Instagram'};
+let guest=localStorage.getItem('fp_guest');if(guest==='undefined'||guest==='null')guest=null;
+const plat=sessionStorage.getItem('plat');
+async function api(action,x={}){
+  const t=auth.currentUser?await auth.currentUser.getIdToken():guest;
+  let r,j;
+  try{r=await fetch('/api',{method:'POST',body:JSON.stringify({action,token:t,...x})});j=await r.json()}catch(e){throw new Error('Cannot reach the server. Check your internet and try again.')}
+  if(r.status===401){localStorage.removeItem('fp_guest');location.href='index.html';throw new Error('Please sign in again')}
+  if(!r.ok)throw new Error(j.error||'Server error');
+  return j;
+}
+async function start(){
+  await auth.authStateReady();
+  if(!auth.currentUser&&!guest){location.href='index.html';throw new Error('login')}
+  try{const r=await api('me');$('#pts').textContent=r.user.points+' points';return r}catch(e){say(e.message);throw e}
+}
+const logout=async()=>{await signOut(auth);localStorage.removeItem('fp_guest');sessionStorage.clear();location.href='index.html'};
+if(!plat&&!['index','home'].includes(document.body.dataset.p)){location.href='home.html'}
+$('#pl').textContent=PL[plat];
+const r=await start(),yt=plat==='youtube',list=Object.values(r.profiles[plat]||{}),t=$('#t');
+if(!list.length)t.innerHTML='<p class="m">Link a profile first in the Profiles page.</p>';
+else{
+  let o=[];try{o=(await api('orders',{platform:plat})).orders}catch(e){say(e.message)}
+  t.innerHTML=`<div class="card"><select id="bp">${list.map(p=>`<option>${esc(p.handle)}</option>`).join('')}</select><select id="bt">${(yt?['subscribe','like']:['follow','like']).map(x=>`<option>${x}</option>`).join('')}</select><select id="bl"><option value="normal">Normal · 3 points each</option><option value="premium">Premium · 4 points each</option><option value="ultra">Ultra · 5 points each</option></select><input id="bq" type="number" min="1" max="1000" value="10"><input id="bk" placeholder="Video or reel link (subscribe and like)"><button id="bg">Create order</button><p class="m">Likes cost 2 points each and ignore the tier. Higher tiers are shown to earners first.</p></div>${o.map(x=>`<div class="row"><span>${x.type} · ${esc(x.handle)} · ${x.tier}</span><span>${x.done||0}/${x.qty}</span></div>`).join('')}`;
+  $('#bg').onclick=async()=>{try{await api('boost',{platform:plat,handle:$('#bp').value,type:$('#bt').value,tier:$('#bl').value,qty:+$('#bq').value,link:$('#bk').value});location.reload()}catch(e){say(e.message)}};
+}
+</script></body></html>
