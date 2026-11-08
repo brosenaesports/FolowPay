@@ -14,6 +14,7 @@ module.exports = async (b, u, me, ur, R) => {
     return R(200, { txs: Object.values(q).sort((x, y) => y.created - x.created) });
   }
   if (a === 'buy') {
+    if (me.guest) return R(403, { error: 'Upgrade to a Google account to buy points' });
     const pk = PACKS[b.pack];
     if (!pk) return R(400, { error: 'Choose a pack' });
     const now = Date.now(), q = (await ref.limitToLast(20).get()).val() || {};
