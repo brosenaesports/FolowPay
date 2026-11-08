@@ -5,7 +5,7 @@ const call = async path => (await fetch(BASE + path)).json();
 
 module.exports = async (b, u, me, ur, R) => {
   const a = b.action;
-  if (!['buy', 'check', 'txs'].includes(a)) return null;
+  if (!['buy', 'check', 'txs', 'cancel'].includes(a)) return null;
   const KEY = process.env.GRAM_API_KEY;
   if (!KEY) return R(500, { error: 'Payments are not set up yet (GRAM_API_KEY missing)' });
   const ref = db.ref('userPay/' + u.uid);
@@ -38,7 +38,11 @@ module.exports = async (b, u, me, ur, R) => {
     if (!c.committed) return R(200, { status: 'PAID' });
     await ref.child(id).update({ status: 'PAID', paid: Date.now() });
     const t = await ur.child('points').transaction(x => (x || 0) + rec.pts);
-    return R(200, { status: 'PAID', points: t.snapshot.val() });
+    return R(200, { status: 'PAID', points: t.snapshot.val(), pts: rec.pts });
+  }
+  if (a === 'cancel') {                                              // paid in the meantime was credited above
+    await ref.child(id).update({ status: st === 'EXPIRED' ? 'EXPIRED' : 'CANCELLED' });
+    return R(200, { status: 'CANCELLED' });
   }
   if (st === 'EXPIRED') await ref.child(id).update({ status: 'EXPIRED' });
   return R(200, { status: st || 'PENDING' });
