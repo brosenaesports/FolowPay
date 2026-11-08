@@ -104,7 +104,8 @@ const fail=e=>{if(/^Admin session/.test(e.message)){sessionStorage.removeItem('f
 const ta='style="width:100%;border:2px solid #000;border-radius:10px;padding:10px;font:inherit;margin:6px 0"';
 let tab='tasks';
 function login(){
-  root.innerHTML=`<div class="card"><input id="pw" type="password" placeholder="Admin password" autocomplete="current-password"><button id="go">${I('lock')} Log in</button></div>`;
+  root.innerHTML=`<div class="card"><input id="pw" type="password" placeholder="Admin password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="o" id="sh" type="button">Show password</button><button id="go">${I('lock')} Log in</button></div>`;
+  $('#sh').onclick=()=>{const i=$('#pw'),h=i.type==='password';i.type=h?'text':'password';$('#sh').textContent=h?'Hide password':'Show password'};
   $('#go').onclick=async()=>{try{const r=await api('admLogin',{password:$('#pw').value});sessionStorage.setItem('fp_a',r.atoken);sessionStorage.setItem('fp_d',r.isDefault?'1':'');panel()}catch(e){say(e.message,'Login failed')}};
 }
 function panel(){
