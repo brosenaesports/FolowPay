@@ -12,6 +12,34 @@ async function dataUri(url) {
     return r.ok && b.length < 60000 ? `data:${r.headers.get('content-type') || 'image/jpeg'};base64,${b.toString('base64')}` : null;
   } catch { return null; }
 }
+const FB = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
+// Instagram: ask the public profile page (as a link-preview bot) and the web profile endpoint at the same time
+async function igProfile(h) {
+  const hl = h.toLowerCase();
+  const [pg, ap] = await Promise.allSettled([
+    get('https://www.instagram.com/' + h + '/', { 'user-agent': FB }),
+    get('https://www.instagram.com/api/v1/users/web_profile_info/?username=' + h, { 'x-ig-app-id': '936619743392459' })
+  ]);
+  let missing = false, found = false, pic = null;
+  if (pg.status === 'fulfilled') {
+    const r = pg.value;
+    if (r.status === 404) missing = true;
+    else if (r.ok) {
+      const t = await r.text(), info = (meta(t, 'og:title') || '') + ' ' + (meta(t, 'og:description') || '');
+      if (info.toLowerCase().includes('@' + hl)) { found = true; pic = meta(t, 'og:image'); }
+    }
+  }
+  if (ap.status === 'fulfilled') {
+    const r = ap.value;
+    if (r.status === 404) missing = true;
+    else if (r.ok) try {
+      const u = ((await r.json()).data || {}).user;
+      if (u && String(u.username).toLowerCase() === hl) { found = true; pic = pic || u.profile_pic_url; }
+    } catch {}
+  }
+  if (found) return { state: 'ok', pic: pic ? await dataUri(pic) : null };
+  return { state: missing ? 'missing' : 'unknown' };
+}
 // -> { state: 'ok' | 'missing' | 'unknown', pic }
 async function profile(p, h) {
   try {
@@ -21,10 +49,7 @@ async function profile(p, h) {
       const pic = meta(await r.text(), 'og:image');
       return r.ok && pic ? { state: 'ok', pic: await dataUri(pic.replace(/=s\d+.*$/, '=s96-c')) } : { state: 'unknown' };
     }
-    const r = await get('https://www.instagram.com/api/v1/users/web_profile_info/?username=' + h, { 'x-ig-app-id': '936619743392459' });
-    if (r.status === 404) return { state: 'missing' };
-    const u = r.ok && ((await r.json()).data || {}).user;
-    return u ? { state: 'ok', pic: u.profile_pic_url ? await dataUri(u.profile_pic_url) : null } : { state: 'unknown' };
+    return await igProfile(h);
   } catch { return { state: 'unknown' }; }
 }
 const ytId = u => {
