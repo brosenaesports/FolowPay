@@ -15,7 +15,7 @@ async function dataUri(url) {
 const FB = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
 const MOB = 'Instagram 219.0.0.12.117 Android (30/11; 420dpi; 1080x2220; samsung; SM-G991B; o1s; exynos2100; en_US; 350696610)';
 // Instagram: four independent checks run at the same time; any one that confirms the account is enough
-async function igProfile(h) {
+async function igScrape(h) {
   const hl = h.toLowerCase(), enc = encodeURIComponent(h);
   const api = (host, ua) => get(`https://${host}/api/v1/users/web_profile_info/?username=${enc}`, { 'user-agent': ua, 'x-ig-app-id': '936619743392459' });
   const [pg, a1, a2, em] = await Promise.allSettled([
@@ -48,6 +48,27 @@ async function igProfile(h) {
   } catch {}
   if (found) return { state: 'ok', pic: pic ? await dataUri(pic) : null, why };
   return { state: missing ? 'missing' : 'unknown', why };
+}
+// Main Instagram check: SearchApi.io profile lookup (works from servers; scraping above is only a backup)
+async function searchApi(h) {
+  const c = new AbortController(), t = setTimeout(() => c.abort(), 6000);
+  try {
+    const r = await fetch('https://www.searchapi.io/api/v1/search?engine=instagram_profile&username=' + encodeURIComponent(h),
+      { headers: { authorization: 'Bearer ' + (process.env.SEARCHAPI_KEY || 'dUXLeq5TjY2Ty82Dy7mwz2if') }, signal: c.signal });
+    let j = {}; try { j = await r.json(); } catch {}
+    if (j.profile && String(j.profile.username || '').toLowerCase() === h.toLowerCase()) return { state: 'ok', pic: j.profile.avatar, why: 'searchapi ok' };
+    const msg = String(j.error || '').slice(0, 80), why = `searchapi ${r.status} ${msg}`.trim();
+    if (r.status === 404 || /not found|does not exist|doesn.?t exist|no (such )?(user|profile|account)/i.test(msg)) return { state: 'missing', why };
+    return { state: 'unknown', why };
+  } catch { return { state: 'unknown', why: 'searchapi no answer' }; }
+  finally { clearTimeout(t); }
+}
+async function igProfile(h) {
+  const s = await searchApi(h);
+  if (s.state === 'ok') return { state: 'ok', pic: s.pic ? await dataUri(s.pic) : null, why: s.why };
+  if (s.state === 'missing') return s;
+  const f = await igScrape(h);                                      // backup when SearchApi is unavailable
+  return { ...f, why: s.why + '; ' + f.why };
 }
 // -> { state: 'ok' | 'missing' | 'unknown', pic }
 async function profile(p, h) {
