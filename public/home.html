@@ -25,13 +25,34 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
 .tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
 @keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
-@media(prefers-reduced-motion:reduce){.tick{animation:none}}
+.full{position:fixed;inset:0;background:#fff;z-index:8;overflow:auto;padding:20px 16px;text-align:center}
+.fin{max-width:420px;margin:0 auto}
+.qr{display:block;width:min(80vw,340px);height:auto;margin:12px auto;padding:8px;border:2px solid #000;border-radius:6px;background:#fff}
+.okc{width:120px;height:120px;margin:0 auto 12px;display:block}
+.okc circle{stroke:#16a34a;stroke-width:3;stroke-dasharray:151;stroke-dashoffset:151;animation:dr .6s ease-out forwards}
+.okc path{stroke:#16a34a;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:dr .4s .5s ease-out forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.tick{animation:none}.okc circle,.okc path{animation:none;stroke-dashoffset:0}}
+.ic{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.2em}
+header{position:sticky;top:0;background:#fff;z-index:5}
+header b{display:flex;align-items:center;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;border:2px solid #000;border-radius:999px;padding:3px 12px;font-weight:700}
+nav a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.68rem;padding:6px 2px;border-radius:10px}
+nav a .ic{width:1.4em;height:1.4em}
+.card{border-radius:12px;box-shadow:3px 3px 0 #000}
+button,a.b{display:flex;align-items:center;justify-content:center;gap:8px;border-radius:10px}
+button:active,a.b:active{transform:translate(1px,1px)}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select{border-radius:10px}
+.step{display:flex;gap:12px;align-items:flex-start;padding:8px 0}
+.ib{width:38px;height:38px;border:2px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
 .av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
 <body data-page="home">
-<header><b>FollowPay</b><span id="pts"></span></header>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10H3z"/><path d="M9 21v-6h6v6"/></symbol><symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.8c0-1.2 1-1.8 2.5-1.8s2.5.7 2.5 1.8c0 2.4-5 1.2-5 3.8 0 1.2 1 1.9 2.5 1.9s2.5-.6 2.5-1.9"/></symbol><symbol id="i-boost" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol><symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol><symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13M12 8C9 8 8 4.5 10 4s2 4 2 4zM12 8c3 0 4-3.5 2-4s-2 4-2 4z"/></symbol><symbol id="i-yt" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z"/></symbol><symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.5-8 11-8 11z"/></symbol><symbol id="i-follow" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol><symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8h16v-8M12 15V3M8 7l4-4 4 4"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol><symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></symbol><symbol id="i-swap" viewBox="0 0 24 24"><path d="M17 3l4 4-4 4M21 7H8M7 21l-4-4 4-4M3 17h13"/></symbol><symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol></defs></svg><header><b><svg class="ic" aria-hidden="true"><use href="#i-boost"/></svg> FollowPay</b><span class="pill" id="pw" hidden><svg class="ic" aria-hidden="true"><use href="#i-coin"/></svg><span id="pts"></span></span></header>
 <main>
-<div class="card" id="pick" hidden><h1>Where do you want to earn today?</h1><button data-plat="youtube">YouTube</button><button data-plat="instagram" class="o">Instagram</button></div>
-<div class="card" id="menu" hidden><h1 id="pl"></h1><a class="b" href="earn.html">Earn points</a><a class="b o" href="boost.html">Boost my profile</a><a class="b o" href="buy.html">Buy points</a><a class="b o" href="refer.html">Refer and earn</a><a class="b o" href="profiles.html">My profiles</a><button class="o" id="sw">Switch platform</button><button class="o" id="lo">Log out</button></div>
+<div class="card" id="up" hidden><b><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg> Guest account</b><p class="m">Upgrade to Google to buy points, refer friends and keep your points safe.</p><button id="ug"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg> Upgrade to Google</button></div>
+<div class="card" id="pick" hidden><h1>Where do you want to earn today?</h1><button data-plat="youtube"><svg class="ic" aria-hidden="true"><use href="#i-yt"/></svg> YouTube</button><button data-plat="instagram" class="o"><svg class="ic" aria-hidden="true"><use href="#i-ig"/></svg> Instagram</button></div>
+<div class="card" id="menu" hidden><h1 id="pl"></h1><a class="b" href="earn.html"><svg class="ic" aria-hidden="true"><use href="#i-coin"/></svg> Earn points</a><a class="b o" href="boost.html"><svg class="ic" aria-hidden="true"><use href="#i-boost"/></svg> Boost my profile</a><a class="b o" href="buy.html"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg> Buy points</a><a class="b o" href="refer.html"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg> Refer and earn</a><a class="b o" href="profiles.html"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg> My profiles</a><button class="o" id="sw"><svg class="ic" aria-hidden="true"><use href="#i-swap"/></svg> Switch platform</button><button class="o" id="lo"><svg class="ic" aria-hidden="true"><use href="#i-out"/></svg> Log out</button></div>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);
@@ -42,8 +63,8 @@ const PL={youtube:'YouTube',instagram:'Instagram'};
 const tok=localStorage.getItem('fp_t'),page=document.body.dataset.page,plat=sessionStorage.getItem('plat');
 if(!tok||tok==='undefined'){location.href='index.html';throw 0}
 if(!plat&&!['home','buy','profiles','refer'].includes(page)){location.href='home.html';throw 0}
-const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n+' points'};
-if(localStorage.getItem('fp_p'))$('#pts').textContent=localStorage.getItem('fp_p')+' points';
+const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n;$('#pw').hidden=false};
+if(localStorage.getItem('fp_p')){$('#pts').textContent=localStorage.getItem('fp_p');$('#pw').hidden=false}
 async function api(action,x={}){
   let r,j;
   try{r=await fetch('/api',{method:'POST',body:JSON.stringify({action,token:tok,...x})});j=await r.json()}catch(e){throw new Error('Cannot reach the server. Check your internet.')}
@@ -55,9 +76,18 @@ const start=async()=>{try{const r=await api('me');setPts(r.user.points);
   const c=localStorage.getItem('fp_ref');if(c&&!r.user.refBy&&!(r.user.spent>0))api('useRef',{code:c}).catch(()=>{}).finally(()=>localStorage.removeItem('fp_ref'));
   return r}catch(e){say(e.message);throw e}};
 const logout=()=>{localStorage.removeItem('fp_t');localStorage.removeItem('fp_p');sessionStorage.clear();location.href='index.html'};
+const I=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const CFG={apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"};
+async function upgrade(){
+  try{const V='https://www.gstatic.com/firebasejs/10.12.2/',[A,B]=await Promise.all([import(V+'firebase-app.js'),import(V+'firebase-auth.js')]);
+    const c=await B.signInWithPopup(B.getAuth(A.initializeApp(CFG)),new B.GoogleAuthProvider());
+    await api('linkGoogle',{idToken:await c.user.getIdToken()});
+    ok('Your account is now linked to Google. You can sign in with Google any time.','Account upgraded',()=>location.reload());
+  }catch(e){say(e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':e.code==='auth/unauthorized-domain'?'Add folowpay.netlify.app in Firebase authorized domains.':e.message,'Could not upgrade')}
+}
 const show=()=>{const p=sessionStorage.getItem('plat');$('#pick').hidden=!!p;$('#menu').hidden=!p;if(p)$('#pl').textContent=PL[p]};
 document.querySelectorAll('[data-plat]').forEach(b=>b.onclick=()=>{sessionStorage.setItem('plat',b.dataset.plat);show()});
 $('#sw').onclick=()=>{sessionStorage.removeItem('plat');show()};
 $('#lo').onclick=logout;show();
-start().catch(()=>{});
+start().then(r=>{if(r.user.guest){$('#up').hidden=false;$('#ug').onclick=upgrade}}).catch(()=>{});
 </script></body></html>
