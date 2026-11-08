@@ -19,20 +19,28 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
 .row button{width:auto;margin:0;padding:6px 12px}
 .m{color:#555;font-size:.9rem;margin:.4em 0}
-#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+.tabs{display:flex;gap:6px}.tabs button{margin:6px 0;padding:10px 6px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.pop{background:#fff;border:2px solid #000;border-radius:6px;padding:20px;max-width:360px;width:100%}
+.pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
+.tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
+@keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.tick{animation:none}}
+.av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
 <body data-page="profiles">
 <header><b>FollowPay</b><span id="pts"></span></header><nav><a href="home.html">Home</a><a href="earn.html">Earn</a><a href="boost.html">Boost</a><a href="buy.html">Buy</a><a href="profiles.html" class=on>Profiles</a></nav>
-<main><div id="msg" hidden></div>
+<main>
 <div id="t"></div>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
+const ok=(m,t,cb)=>say(m,t||'Done',cb);
 const PL={youtube:'YouTube',instagram:'Instagram'};
 const tok=localStorage.getItem('fp_t'),page=document.body.dataset.page,plat=sessionStorage.getItem('plat');
 if(!tok||tok==='undefined'){location.href='index.html';throw 0}
-if(!plat&&!['home','buy','profiles'].includes(page)){location.href='home.html';throw 0}
+if(!plat&&!['home','buy','profiles','refer'].includes(page)){location.href='home.html';throw 0}
 const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n+' points'};
 if(localStorage.getItem('fp_p'))$('#pts').textContent=localStorage.getItem('fp_p')+' points';
 async function api(action,x={}){
@@ -42,13 +50,24 @@ async function api(action,x={}){
   if(!r.ok)throw new Error(j.error||'Server error');
   return j;
 }
-const start=async()=>{try{const r=await api('me');setPts(r.user.points);return r}catch(e){say(e.message);throw e}};
+const start=async()=>{try{const r=await api('me');setPts(r.user.points);
+  const c=localStorage.getItem('fp_ref');if(c&&!r.user.refBy&&!(r.user.spent>0))api('useRef',{code:c}).catch(()=>{}).finally(()=>localStorage.removeItem('fp_ref'));
+  return r}catch(e){say(e.message);throw e}};
 const logout=()=>{localStorage.removeItem('fp_t');localStorage.removeItem('fp_p');sessionStorage.clear();location.href='index.html'};
 const r=await start(),t=$('#t');
+const CFG={apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"};
+const av=x=>x.pic?`<img class="av" src="${esc(x.pic)}" alt="" referrerpolicy="no-referrer">`:`<span class="av">${esc(x.handle.replace('@','').charAt(0).toUpperCase())}</span>`;
 const sec=p=>{const yt=p==='youtube',l=Object.values(r.profiles[p]||{});
-  return `<div class="card"><h1>${PL[p]}</h1><p class="m">${l.length}/3 linked. You can remove one 24 hours after linking it.</p>${l.map(x=>`<div class="row"><span>${esc(x.handle)}</span><button class="o" data-r="${p}" data-h="${esc(x.handle)}">Remove</button></div>`).join('')}<input data-i="${p}" placeholder="${yt?'@AKGAMER-s8s':'Instagram username'}" autocapitalize="off" autocomplete="off"><button data-a="${p}">Link ${PL[p]} profile</button></div>`};
-t.innerHTML=(plat==='instagram'?['instagram','youtube']:['youtube','instagram']).map(sec).join('');
-const act=async(a,p,h)=>{try{await api(a,{platform:p,handle:h});location.reload()}catch(e){say(e.message)}};
-t.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>act('bind',b.dataset.a,t.querySelector(`[data-i="${b.dataset.a}"]`).value));
-t.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>act('remove',b.dataset.r,b.dataset.h));
+  return `<div class="card"><h1>${PL[p]}</h1><p class="m">${l.length}/3 linked. You can remove one 24 hours after linking it.</p>${l.map(x=>`<div class="row"><span style="display:flex;gap:10px;align-items:center">${av(x)}<span>${esc(x.handle)}<br><span class="m">${x.ok?'✓ Account verified':'Could not be verified'}</span></span></span><button class="o" data-r="${p}" data-h="${esc(x.handle)}">Remove</button></div>`).join('')}<input data-i="${p}" placeholder="${yt?'@AKGAMER-s8s':'Instagram username'}" autocapitalize="off" autocomplete="off"><button data-a="${p}">Link ${PL[p]} profile</button></div>`};
+t.innerHTML=(r.user.guest?`<div class="card"><b>Guest account</b><p class="m">Link Google to keep your points safe and sign in from any device.</p><button id="lg">Link Google account</button></div>`:'')+(plat==='instagram'?['instagram','youtube']:['youtube','instagram']).map(sec).join('');
+const act=async(a,p,h,b)=>{const tx=b.textContent;b.disabled=true;b.textContent=a==='bind'?'Checking account…':'Removing…';
+  try{await api(a,{platform:p,handle:h});ok(a==='bind'?'Profile linked.':'Profile removed.','Done',()=>location.reload())}
+  catch(e){say(e.message,a==='bind'?'Could not link profile':'Could not remove');b.disabled=false;b.textContent=tx}};
+t.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>act('bind',b.dataset.a,t.querySelector(`[data-i="${b.dataset.a}"]`).value,b));
+t.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>act('remove',b.dataset.r,b.dataset.h,b));
+if($('#lg'))$('#lg').onclick=async()=>{try{const V='https://www.gstatic.com/firebasejs/10.12.2/',[A,B]=await Promise.all([import(V+'firebase-app.js'),import(V+'firebase-auth.js')]);
+  const c=await B.signInWithPopup(B.getAuth(A.initializeApp(CFG)),new B.GoogleAuthProvider());
+  await api('linkGoogle',{idToken:await c.user.getIdToken()});
+  ok('Your guest account is now linked. You can sign in with Google any time.','Google linked',()=>location.reload())
+}catch(e){say(e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':e.code==='auth/unauthorized-domain'?'Add folowpay.netlify.app in Firebase authorized domains.':e.message,'Could not link Google')}};
 </script></body></html>
