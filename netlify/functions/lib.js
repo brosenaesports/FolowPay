@@ -36,4 +36,4 @@ async function auth(t) {
     return { uid: d.uid, guest: false, email: d.email, name: d.name, pic: d.picture };
   } catch { throw new Error('auth'); }
 }
-module.exports = { db, auth, sess, crypto, bad };
+module.exports = { db, auth, sess, sign, crypto, bad };
