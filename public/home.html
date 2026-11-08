@@ -19,21 +19,29 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
 .row button{width:auto;margin:0;padding:6px 12px}
 .m{color:#555;font-size:.9rem;margin:.4em 0}
-#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+.tabs{display:flex;gap:6px}.tabs button{margin:6px 0;padding:10px 6px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.pop{background:#fff;border:2px solid #000;border-radius:6px;padding:20px;max-width:360px;width:100%}
+.pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
+.tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
+@keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.tick{animation:none}}
+.av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
 <body data-page="home">
 <header><b>FollowPay</b><span id="pts"></span></header>
-<main><div id="msg" hidden></div>
+<main>
 <div class="card" id="pick" hidden><h1>Where do you want to earn today?</h1><button data-plat="youtube">YouTube</button><button data-plat="instagram" class="o">Instagram</button></div>
-<div class="card" id="menu" hidden><h1 id="pl"></h1><a class="b" href="earn.html">Earn points</a><a class="b o" href="boost.html">Boost my profile</a><a class="b o" href="buy.html">Buy points</a><a class="b o" href="profiles.html">My profiles</a><button class="o" id="sw">Switch platform</button><button class="o" id="lo">Log out</button></div>
+<div class="card" id="menu" hidden><h1 id="pl"></h1><a class="b" href="earn.html">Earn points</a><a class="b o" href="boost.html">Boost my profile</a><a class="b o" href="buy.html">Buy points</a><a class="b o" href="refer.html">Refer and earn</a><a class="b o" href="profiles.html">My profiles</a><button class="o" id="sw">Switch platform</button><button class="o" id="lo">Log out</button></div>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
+const ok=(m,t,cb)=>say(m,t||'Done',cb);
 const PL={youtube:'YouTube',instagram:'Instagram'};
 const tok=localStorage.getItem('fp_t'),page=document.body.dataset.page,plat=sessionStorage.getItem('plat');
 if(!tok||tok==='undefined'){location.href='index.html';throw 0}
-if(!plat&&!['home','buy','profiles'].includes(page)){location.href='home.html';throw 0}
+if(!plat&&!['home','buy','profiles','refer'].includes(page)){location.href='home.html';throw 0}
 const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n+' points'};
 if(localStorage.getItem('fp_p'))$('#pts').textContent=localStorage.getItem('fp_p')+' points';
 async function api(action,x={}){
@@ -43,7 +51,9 @@ async function api(action,x={}){
   if(!r.ok)throw new Error(j.error||'Server error');
   return j;
 }
-const start=async()=>{try{const r=await api('me');setPts(r.user.points);return r}catch(e){say(e.message);throw e}};
+const start=async()=>{try{const r=await api('me');setPts(r.user.points);
+  const c=localStorage.getItem('fp_ref');if(c&&!r.user.refBy&&!(r.user.spent>0))api('useRef',{code:c}).catch(()=>{}).finally(()=>localStorage.removeItem('fp_ref'));
+  return r}catch(e){say(e.message);throw e}};
 const logout=()=>{localStorage.removeItem('fp_t');localStorage.removeItem('fp_p');sessionStorage.clear();location.href='index.html'};
 const show=()=>{const p=sessionStorage.getItem('plat');$('#pick').hidden=!!p;$('#menu').hidden=!p;if(p)$('#pl').textContent=PL[p]};
 document.querySelectorAll('[data-plat]').forEach(b=>b.onclick=()=>{sessionStorage.setItem('plat',b.dataset.plat);show()});
