@@ -6,11 +6,11 @@
 body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff;color:#000}
 header{display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;padding:16px;border-bottom:2px solid #000}
 header b{font-size:1.25rem;letter-spacing:-.02em}
-nav{display:flex;gap:6px;max-width:520px;margin:0 auto;padding:10px 16px 0}
-nav a{flex:1;text-align:center;padding:8px 4px;border:2px solid #000;border-radius:6px;color:#000;text-decoration:none;font-weight:600;font-size:.9rem}
+nav{display:flex;gap:4px;max-width:520px;margin:0 auto;padding:10px 16px 0}
+nav a{flex:1;text-align:center;padding:8px 2px;border:2px solid #000;border-radius:6px;color:#000;text-decoration:none;font-weight:600;font-size:.8rem}
 nav a.on{background:#000;color:#fff}
 main{max-width:520px;margin:0 auto;padding:8px 16px 40px}
-h1{font-size:1.6rem;line-height:1.15;margin:.4em 0;letter-spacing:-.02em}
+h1{font-size:1.5rem;line-height:1.15;margin:.4em 0;letter-spacing:-.02em}
 .card{border:2px solid #000;border-radius:6px;padding:16px;margin:16px 0}
 button,a.b{display:block;font:inherit;font-weight:600;width:100%;padding:13px 16px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#000;color:#fff;cursor:pointer;text-align:center;text-decoration:none}
 .o{background:#fff!important;color:#000!important}
@@ -20,7 +20,7 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .row button{width:auto;margin:0;padding:6px 12px}
 .m{color:#555;font-size:.9rem;margin:.4em 0}
 #msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
-<body data-p="index">
+<body data-page="index">
 <header><b>FollowPay</b><span id="pts"></span></header>
 <main><div id="msg" hidden></div>
 <div class="card"><h1>Earn points. Grow your channel.</h1><p class="m">Sign in with Google to keep your points safe, or start as a guest.</p>
@@ -28,38 +28,20 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 <p class="m">Guest points stay on this device until you link Google.</p></div>
 </main>
 <script type="module">
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import {getAuth,GoogleAuthProvider,signInWithPopup,signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-const auth=getAuth(initializeApp({apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"}));
 const $=s=>document.querySelector(s);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
-const PL={youtube:'YouTube',instagram:'Instagram'};
-let guest=localStorage.getItem('fp_guest');if(guest==='undefined'||guest==='null')guest=null;
-const plat=sessionStorage.getItem('plat');
-async function api(action,x={}){
-  const t=auth.currentUser?await auth.currentUser.getIdToken():guest;
-  let r,j;
-  try{r=await fetch('/api',{method:'POST',body:JSON.stringify({action,token:t,...x})});j=await r.json()}catch(e){throw new Error('Cannot reach the server. Check your internet and try again.')}
-  if(r.status===401){localStorage.removeItem('fp_guest');location.href='index.html';throw new Error('Please sign in again')}
-  if(!r.ok)throw new Error(j.error||'Server error');
-  return j;
-}
-async function start(){
-  await auth.authStateReady();
-  if(!auth.currentUser&&!guest){location.href='index.html';throw new Error('login')}
-  try{const r=await api('me');$('#pts').textContent=r.user.points+' points';return r}catch(e){say(e.message);throw e}
-}
-const logout=async()=>{await signOut(auth);localStorage.removeItem('fp_guest');sessionStorage.clear();location.href='index.html'};
-if(!plat&&!['index','home'].includes(document.body.dataset.p)){location.href='home.html'}
-const go=()=>{sessionStorage.removeItem('plat');location.href='home.html'};
-(async()=>{await auth.authStateReady();if(auth.currentUser||guest)go()})();
-$('#g').onclick=async()=>{say('');try{await signInWithPopup(auth,new GoogleAuthProvider());go()}catch(e){
-  say(e.code==='auth/unauthorized-domain'?'Add folowpay.netlify.app in Firebase → Authentication → Settings → Authorized domains.':
-      e.code==='auth/operation-not-allowed'?'Turn on Google in Firebase → Authentication → Sign-in method.':
-      e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':'Google sign-in failed: '+(e.code||e.message))}};
-$('#s').onclick=async()=>{say('');try{
-  const r=await fetch('/api',{method:'POST',body:JSON.stringify({action:'guest'})});const j=await r.json();
-  if(!r.ok||!j.token)throw new Error(j.error||'Server error');
-  localStorage.setItem('fp_guest',j.token);go()}catch(e){say(e.message)}};
+if(localStorage.getItem('fp_t')&&localStorage.getItem('fp_t')!=='undefined')location.href='home.html';
+const go=t=>{localStorage.setItem('fp_t',t);sessionStorage.removeItem('plat');location.href='home.html'};
+const post=async b=>{const r=await fetch('/api',{method:'POST',body:JSON.stringify(b)});const j=await r.json();if(!r.ok||!j.token)throw new Error(j.error||'Server error');return j.token};
+const V='https://www.gstatic.com/firebasejs/10.12.2/';
+const sdk=Promise.all([import(V+'firebase-app.js'),import(V+'firebase-auth.js')]);sdk.catch(()=>{});
+$('#g').onclick=async()=>{say('');try{
+  const [A,B]=await sdk;
+  const au=B.getAuth(A.initializeApp({apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"}));
+  const c=await B.signInWithPopup(au,new B.GoogleAuthProvider());
+  go(await post({action:'login',token:await c.user.getIdToken()}));
+}catch(e){say(e.code==='auth/unauthorized-domain'?'Add folowpay.netlify.app in Firebase → Authentication → Settings → Authorized domains.':
+  e.code==='auth/operation-not-allowed'?'Turn on Google in Firebase → Authentication → Sign-in method.':
+  e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':e.code?'Google sign-in failed: '+e.code:e.message)}};
+$('#s').onclick=async()=>{say('');try{go(await post({action:'guest'}))}catch(e){say(e.message)}};
 </script></body></html>
