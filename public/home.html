@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Home – FollowPay</title><meta name="description" content="Earn points by subscribing, following and liking. Spend them to grow your own YouTube channel or Instagram profile."><meta name="robots" content="noindex">
+<link rel="icon" href="/logo.png">
+<style>*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff;color:#000}
+header{display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;padding:16px;border-bottom:2px solid #000}
+header b{font-size:1.25rem;letter-spacing:-.02em}
+nav{display:flex;gap:6px;max-width:520px;margin:0 auto;padding:10px 16px 0}
+nav a{flex:1;text-align:center;padding:8px 4px;border:2px solid #000;border-radius:6px;color:#000;text-decoration:none;font-weight:600;font-size:.9rem}
+nav a.on{background:#000;color:#fff}
+main{max-width:520px;margin:0 auto;padding:8px 16px 40px}
+h1{font-size:1.6rem;line-height:1.15;margin:.4em 0;letter-spacing:-.02em}
+.card{border:2px solid #000;border-radius:6px;padding:16px;margin:16px 0}
+button,a.b{display:block;font:inherit;font-weight:600;width:100%;padding:13px 16px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#000;color:#fff;cursor:pointer;text-align:center;text-decoration:none}
+.o{background:#fff!important;color:#000!important}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #000;outline-offset:2px}
+input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#fff;color:#000}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
+.row button{width:auto;margin:0;padding:6px 12px}
+.m{color:#555;font-size:.9rem;margin:.4em 0}
+#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+<body data-p="home">
+<header><b>FollowPay</b><span id="pts"></span></header>
+<main><div id="msg" hidden></div>
+<div class="card" id="pick" hidden><h1>Where do you want to earn today?</h1><button data-p="youtube">YouTube</button><button data-p="instagram" class="o">Instagram</button></div>
+<div class="card" id="menu" hidden><h1 id="pl"></h1><a class="b" href="earn.html">Earn points</a><a class="b o" href="boost.html">Boost my profile</a><a class="b o" href="profiles.html">My profiles</a><button class="o" id="sw">Switch platform</button><button class="o" id="lo">Log out</button></div>
+</main>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {getAuth,GoogleAuthProvider,signInWithPopup,signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+const auth=getAuth(initializeApp({apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"}));
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const PL={youtube:'YouTube',instagram:'Instagram'};
+let guest=localStorage.getItem('fp_guest');if(guest==='undefined'||guest==='null')guest=null;
+const plat=sessionStorage.getItem('plat');
+async function api(action,x={}){
+  const t=auth.currentUser?await auth.currentUser.getIdToken():guest;
+  let r,j;
+  try{r=await fetch('/api',{method:'POST',body:JSON.stringify({action,token:t,...x})});j=await r.json()}catch(e){throw new Error('Cannot reach the server. Check your internet and try again.')}
+  if(r.status===401){localStorage.removeItem('fp_guest');location.href='index.html';throw new Error('Please sign in again')}
+  if(!r.ok)throw new Error(j.error||'Server error');
+  return j;
+}
+async function start(){
+  await auth.authStateReady();
+  if(!auth.currentUser&&!guest){location.href='index.html';throw new Error('login')}
+  try{const r=await api('me');$('#pts').textContent=r.user.points+' points';return r}catch(e){say(e.message);throw e}
+}
+const logout=async()=>{await signOut(auth);localStorage.removeItem('fp_guest');sessionStorage.clear();location.href='index.html'};
+if(!plat&&!['index','home'].includes(document.body.dataset.p)){location.href='home.html'}
+await start();
+const show=()=>{const p=sessionStorage.getItem('plat');$('#pick').hidden=!!p;$('#menu').hidden=!p;if(p)$('#pl').textContent=PL[p]};
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{sessionStorage.setItem('plat',b.dataset.p);show()});
+$('#sw').onclick=()=>{sessionStorage.removeItem('plat');show()};
+$('#lo').onclick=logout;show();
+</script></body></html>
