@@ -19,17 +19,27 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
 .row button{width:auto;margin:0;padding:6px 12px}
 .m{color:#555;font-size:.9rem;margin:.4em 0}
-#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+.tabs{display:flex;gap:6px}.tabs button{margin:6px 0;padding:10px 6px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.pop{background:#fff;border:2px solid #000;border-radius:6px;padding:20px;max-width:360px;width:100%}
+.pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
+.tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
+@keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.tick{animation:none}}
+.av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
 <body data-page="index">
 <header><b>FollowPay</b><span id="pts"></span></header>
-<main><div id="msg" hidden></div>
+<main>
 <div class="card"><h1>Earn points. Grow your channel.</h1><p class="m">Sign in with Google to keep your points safe, or start as a guest.</p>
 <button id="g">Continue with Google</button><button id="s" class="o">Continue without login</button>
 <p class="m">Guest points stay on this device until you link Google.</p></div>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);
-const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
+const ok=(m,t,cb)=>say(m,t||'Done',cb);
+{const q=new URLSearchParams(location.search).get('ref');if(q)localStorage.setItem('fp_ref',q.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10))}
 if(localStorage.getItem('fp_t')&&localStorage.getItem('fp_t')!=='undefined')location.href='home.html';
 const go=t=>{localStorage.setItem('fp_t',t);sessionStorage.removeItem('plat');location.href='home.html'};
 const post=async b=>{const r=await fetch('/api',{method:'POST',body:JSON.stringify(b)});const j=await r.json();if(!r.ok||!j.token)throw new Error(j.error||'Server error');return j.token};
