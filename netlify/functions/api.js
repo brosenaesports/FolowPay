@@ -53,7 +53,7 @@ exports.handler = async e => {
       if (!have[k]) {                                                 // check the account really exists
         v = await require('./verify').profile(p, h);
         if (v.state === 'missing') return R(400, { error: `No ${p === 'youtube' ? 'YouTube channel' : 'Instagram account'} found with this name` });
-        if (v.state !== 'ok') return R(400, { error: 'Could not verify this account right now. Check the name and try again in a moment.' });
+        if (v.state !== 'ok') return R(400, { error: 'Could not verify this account right now. Check the name and try again in a moment.' + (v.why ? ' [' + v.why + ']' : '') });
       }
       const t = await db.ref(`profiles/${p}/${k}`).transaction(c => c || { uid: u.uid, at: Date.now() });
       if (t.snapshot.val().uid !== u.uid) return R(409, { error: 'This profile is linked to another account. Remove it there first.' });
