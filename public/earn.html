@@ -19,20 +19,28 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
 .row button{width:auto;margin:0;padding:6px 12px}
 .m{color:#555;font-size:.9rem;margin:.4em 0}
-#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+.tabs{display:flex;gap:6px}.tabs button{margin:6px 0;padding:10px 6px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.pop{background:#fff;border:2px solid #000;border-radius:6px;padding:20px;max-width:360px;width:100%}
+.pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
+.tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
+@keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.tick{animation:none}}
+.av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
 <body data-page="earn">
 <header><b>FollowPay</b><span id="pts"></span></header><nav><a href="home.html">Home</a><a href="earn.html" class=on>Earn</a><a href="boost.html">Boost</a><a href="buy.html">Buy</a><a href="profiles.html">Profiles</a></nav>
-<main><div id="msg" hidden></div>
-<h1><span id="pl"></span> · Earn</h1><p class="m">Tap Open, finish the action, then tap Verify. Verifying too fast counts as a strike.</p><div id="t"></div>
+<main>
+<h1><span id="pl"></span> · Earn</h1><div class="tabs" id="tabs"></div><div id="t"></div>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
+const ok=(m,t,cb)=>say(m,t||'Done',cb);
 const PL={youtube:'YouTube',instagram:'Instagram'};
 const tok=localStorage.getItem('fp_t'),page=document.body.dataset.page,plat=sessionStorage.getItem('plat');
 if(!tok||tok==='undefined'){location.href='index.html';throw 0}
-if(!plat&&!['home','buy','profiles'].includes(page)){location.href='home.html';throw 0}
+if(!plat&&!['home','buy','profiles','refer'].includes(page)){location.href='home.html';throw 0}
 const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n+' points'};
 if(localStorage.getItem('fp_p'))$('#pts').textContent=localStorage.getItem('fp_p')+' points';
 async function api(action,x={}){
@@ -42,15 +50,31 @@ async function api(action,x={}){
   if(!r.ok)throw new Error(j.error||'Server error');
   return j;
 }
-const start=async()=>{try{const r=await api('me');setPts(r.user.points);return r}catch(e){say(e.message);throw e}};
+const start=async()=>{try{const r=await api('me');setPts(r.user.points);
+  const c=localStorage.getItem('fp_ref');if(c&&!r.user.refBy&&!(r.user.spent>0))api('useRef',{code:c}).catch(()=>{}).finally(()=>localStorage.removeItem('fp_ref'));
+  return r}catch(e){say(e.message);throw e}};
 const logout=()=>{localStorage.removeItem('fp_t');localStorage.removeItem('fp_p');sessionStorage.clear();location.href='index.html'};
 $('#pl').textContent=PL[plat];
-const p1=start(),p2=api('tasks',{platform:plat});p2.catch(()=>{});
-await p1;const t=$('#t');
-try{
-  const j=await p2;
-  t.innerHTML=j.tasks.map(x=>`<div class="card"><b>${x.type} · ${esc(x.handle)}</b><p class="m">${x.tier} · +${x.reward} points</p><button class="o" data-o="${x.id}" data-l="${esc(x.link)}">Open</button><button data-v="${x.id}">Verify</button></div>`).join('')||'<p class="m">No tasks right now. Check back soon.</p>';
-}catch(e){say(e.message)}
-t.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{window.open(b.dataset.l,'_blank','noopener');api('startTask',{orderId:b.dataset.o}).catch(e=>say(e.message))});
-t.querySelectorAll('[data-v]').forEach(b=>b.onclick=async()=>{try{const r=await api('verifyTask',{orderId:b.dataset.v});alert('+'+r.reward+' points');location.reload()}catch(e){say(e.message)}});
+const TY=plat==='youtube'?[['subscribe','Subscribe'],['like','Like'],['watch','Watch time']]:[['follow','Follow'],['like','Like']];
+const TP={normal:'',premium:'Premium ',ultra:'Ultra premium '};
+let ty=sessionStorage.getItem('etype');if(!TY.some(x=>x[0]===ty))ty=TY[0][0];
+const skip=[],fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+$('#tabs').innerHTML=TY.map(([k,n])=>`<button class="${k===ty?'':'o'}" data-ty="${k}">${n}</button>`).join('');
+$('#tabs').querySelectorAll('[data-ty]').forEach(b=>b.onclick=()=>{sessionStorage.setItem('etype',b.dataset.ty);location.reload()});
+start().catch(()=>{});
+let iv;
+async function load(){
+  clearInterval(iv);const t=$('#t');t.innerHTML='<p class="m">Loading task…</p>';
+  try{
+    const {task:x,left}=await api('tasks',{platform:plat,type:ty,skip});
+    if(!x){t.innerHTML='<div class="card"><b>No tasks right now</b><p class="m">Check back soon, or pick another task type.</p></div>';return}
+    const w=x.type==='watch';
+    t.innerHTML=`<div class="card"><b>${TP[x.tier]}${x.type} task · ${esc(x.handle)}</b><p class="m">+${x.reward} points${w?' · watch '+x.mins+' min':''} · ${left} available</p><button id="op" class="o">Open ${w?'video':'link'}</button><button id="vf"${w?' disabled':''}>${w?'Open the video first':'Verify'}</button><button id="sk" class="o">Skip</button></div>`;
+    $('#op').onclick=()=>{window.open(x.link,'_blank','noopener');api('startTask',{orderId:x.id}).catch(e=>say(e.message));
+      if(w){let s=x.mins*60+2;const vf=$('#vf');clearInterval(iv);vf.disabled=true;vf.textContent='Keep watching · '+fmt(s);iv=setInterval(()=>{s--;vf.textContent=s>0?'Keep watching · '+fmt(s):'Verify';if(s<=0){clearInterval(iv);vf.disabled=false}},1000)}};
+    $('#vf').onclick=async()=>{try{const r=await api('verifyTask',{orderId:x.id});ok('+'+r.reward+' points added','Task complete',load);start().catch(()=>{})}catch(e){say(e.message,'Unable to verify')}};
+    $('#sk').onclick=()=>{skip.push(x.id);load()};
+  }catch(e){t.innerHTML='';say(e.message,'Cannot load tasks')}
+}
+load();
 </script></body></html>
