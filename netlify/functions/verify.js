@@ -13,13 +13,19 @@ async function dataUri(url) {
   } catch { return null; }
 }
 const FB = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
-// Instagram: ask the public profile page (as a link-preview bot) and the web profile endpoint at the same time
+const MOB = 'Instagram 219.0.0.12.117 Android (30/11; 420dpi; 1080x2220; samsung; SM-G991B; o1s; exynos2100; en_US; 350696610)';
+// Instagram: four independent checks run at the same time; any one that confirms the account is enough
 async function igProfile(h) {
-  const hl = h.toLowerCase();
-  const [pg, ap] = await Promise.allSettled([
+  const hl = h.toLowerCase(), enc = encodeURIComponent(h);
+  const api = (host, ua) => get(`https://${host}/api/v1/users/web_profile_info/?username=${enc}`, { 'user-agent': ua, 'x-ig-app-id': '936619743392459' });
+  const [pg, a1, a2, em] = await Promise.allSettled([
     get('https://www.instagram.com/' + h + '/', { 'user-agent': FB }),
-    get('https://www.instagram.com/api/v1/users/web_profile_info/?username=' + h, { 'x-ig-app-id': '936619743392459' })
+    api('www.instagram.com', UA),
+    api('i.instagram.com', MOB),
+    get('https://www.instagram.com/' + h + '/embed/')
   ]);
+  const st = x => x.status === 'fulfilled' ? x.value.status : 'no answer';
+  const why = `page ${st(pg)}, web ${st(a1)}, mobile ${st(a2)}, embed ${st(em)}`;
   let missing = false, found = false, pic = null;
   if (pg.status === 'fulfilled') {
     const r = pg.value;
@@ -29,16 +35,19 @@ async function igProfile(h) {
       if (info.toLowerCase().includes('@' + hl)) { found = true; pic = meta(t, 'og:image'); }
     }
   }
-  if (ap.status === 'fulfilled') {
-    const r = ap.value;
+  for (const a of [a1, a2]) if (a.status === 'fulfilled') {
+    const r = a.value;
     if (r.status === 404) missing = true;
     else if (r.ok) try {
       const u = ((await r.json()).data || {}).user;
       if (u && String(u.username).toLowerCase() === hl) { found = true; pic = pic || u.profile_pic_url; }
     } catch {}
   }
-  if (found) return { state: 'ok', pic: pic ? await dataUri(pic) : null };
-  return { state: missing ? 'missing' : 'unknown' };
+  if (em.status === 'fulfilled' && em.value.ok) try {
+    if ((await em.value.text()).toLowerCase().includes('"username":"' + hl + '"')) found = true;
+  } catch {}
+  if (found) return { state: 'ok', pic: pic ? await dataUri(pic) : null, why };
+  return { state: missing ? 'missing' : 'unknown', why };
 }
 // -> { state: 'ok' | 'missing' | 'unknown', pic }
 async function profile(p, h) {
