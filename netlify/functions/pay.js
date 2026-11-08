@@ -1,3 +1,4 @@
+
 const { db } = require('./lib');
 const BASE = 'https://gateway.anujbots.in/';
 const PACKS = [[1, 10], [20, 70], [30, 130], [50, 300], [100, 1000]];   // [rupees, points]
@@ -38,6 +39,7 @@ module.exports = async (b, u, me, ur, R) => {
     const c = await ref.child(id + '/credited').transaction(x => x ? undefined : true);   // credit once only
     if (!c.committed) return R(200, { status: 'PAID' });
     await ref.child(id).update({ status: 'PAID', paid: Date.now() });
+    await db.ref('revenue/' + new Date(Date.now() + 19800000).toISOString().slice(0, 10)).transaction(x => (x || 0) + rec.rs);   // revenue per day (IST)
     const t = await ur.child('points').transaction(x => (x || 0) + rec.pts);
     return R(200, { status: 'PAID', points: t.snapshot.val(), pts: rec.pts });
   }
