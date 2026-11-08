@@ -15,6 +15,21 @@ exports.handler = async e => {
       return R(200, { token: sess(uid) });
     }
     const u = await auth(b.token);
+    if (b.action === 'login') {                                       // Google sign-in (linked guests keep their old account)
+      const al = (await db.ref('links/' + u.uid).get()).val(), uid = al || u.uid;
+      if (!al && !(await db.ref('users/' + uid).get()).exists())
+        await db.ref('users/' + uid).set({ points: 0, guest: false, created: Date.now(), email: u.email || null, name: u.name || null, pic: u.pic || null });
+      return R(200, { token: sess(uid) });
+    }
+    if (b.action === 'linkGoogle') {                                  // guest -> Google, nothing is moved
+      if (!u.guest) return R(400, { error: 'Your account is already linked to Google' });
+      let g; try { g = await auth(b.idToken); } catch { return R(400, { error: 'Google sign-in could not be verified' }); }
+      const [x, y] = await Promise.all([db.ref('users/' + g.uid).get(), db.ref('links/' + g.uid).get()]);
+      if (x.exists() || y.exists()) return R(409, { error: 'This Google account already has its own data. Sign in with it directly instead.' });
+      await db.ref('links/' + g.uid).set(u.uid);
+      await db.ref('users/' + u.uid).update({ guest: false, email: g.email || null, name: g.name || null, pic: g.pic || null });
+      return R(200, { ok: true });
+    }
     const ur = db.ref('users/' + u.uid);
     const [us, ps] = await Promise.all([ur.get(), b.action === 'me' ? db.ref('userProfiles/' + u.uid).get() : null]);
     let me = us.val();
@@ -22,9 +37,8 @@ exports.handler = async e => {
       me = { points: 0, guest: u.guest, created: Date.now(), email: u.email || null, name: u.name || null, pic: u.pic || null };
       await ur.set(me);
     }
-    if (b.action === 'login') return R(200, { token: sess(u.uid) });
     if (b.action === 'me') return R(200, { user: me, profiles: ps.val() || {} });
-    const g = (await require('./game')(b, u, me, ur, R)) || (await require('./pay')(b, u, me, ur, R));
+    const g = (await require('./game')(b, u, me, ur, R)) || (await require('./pay')(b, u, me, ur, R)) || (await require('./refer')(b, u, me, ur, R));
     if (g) return g;
     const p = b.platform; let h = String(b.handle || '').trim();
     if (!RE[p]) return R(400, { error: 'Unknown platform' });
@@ -35,9 +49,14 @@ exports.handler = async e => {
     if (b.action === 'bind') {
       const have = (await mine.get()).val() || {};
       if (!have[k] && Object.keys(have).length >= 3) return R(400, { error: 'You can link up to 3 profiles per platform' });
+      let v = { state: 'ok' };
+      if (!have[k]) {                                                 // check the account really exists
+        v = await require('./verify').profile(p, h);
+        if (v.state === 'missing') return R(400, { error: `No ${p === 'youtube' ? 'YouTube channel' : 'Instagram account'} found with this name` });
+      }
       const t = await db.ref(`profiles/${p}/${k}`).transaction(c => c || { uid: u.uid, at: Date.now() });
       if (t.snapshot.val().uid !== u.uid) return R(409, { error: 'This profile is linked to another account. Remove it there first.' });
-      if (!have[k]) await mine.child(k).set({ handle: h, at: Date.now() });
+      if (!have[k]) await mine.child(k).set({ handle: h, at: Date.now(), pic: v.pic || null, ok: v.state === 'ok' });
       return R(200, { ok: true });
     }
     if (b.action === 'remove') {
