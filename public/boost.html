@@ -19,20 +19,28 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
 .row button{width:auto;margin:0;padding:6px 12px}
 .m{color:#555;font-size:.9rem;margin:.4em 0}
-#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+.tabs{display:flex;gap:6px}.tabs button{margin:6px 0;padding:10px 6px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.pop{background:#fff;border:2px solid #000;border-radius:6px;padding:20px;max-width:360px;width:100%}
+.pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
+.tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
+@keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.tick{animation:none}}
+.av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
 <body data-page="boost">
 <header><b>FollowPay</b><span id="pts"></span></header><nav><a href="home.html">Home</a><a href="earn.html">Earn</a><a href="boost.html" class=on>Boost</a><a href="buy.html">Buy</a><a href="profiles.html">Profiles</a></nav>
-<main><div id="msg" hidden></div>
+<main>
 <h1><span id="pl"></span> · Boost</h1><div id="t"></div>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
+const ok=(m,t,cb)=>say(m,t||'Done',cb);
 const PL={youtube:'YouTube',instagram:'Instagram'};
 const tok=localStorage.getItem('fp_t'),page=document.body.dataset.page,plat=sessionStorage.getItem('plat');
 if(!tok||tok==='undefined'){location.href='index.html';throw 0}
-if(!plat&&!['home','buy','profiles'].includes(page)){location.href='home.html';throw 0}
+if(!plat&&!['home','buy','profiles','refer'].includes(page)){location.href='home.html';throw 0}
 const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n+' points'};
 if(localStorage.getItem('fp_p'))$('#pts').textContent=localStorage.getItem('fp_p')+' points';
 async function api(action,x={}){
@@ -42,15 +50,33 @@ async function api(action,x={}){
   if(!r.ok)throw new Error(j.error||'Server error');
   return j;
 }
-const start=async()=>{try{const r=await api('me');setPts(r.user.points);return r}catch(e){say(e.message);throw e}};
+const start=async()=>{try{const r=await api('me');setPts(r.user.points);
+  const c=localStorage.getItem('fp_ref');if(c&&!r.user.refBy&&!(r.user.spent>0))api('useRef',{code:c}).catch(()=>{}).finally(()=>localStorage.removeItem('fp_ref'));
+  return r}catch(e){say(e.message);throw e}};
 const logout=()=>{localStorage.removeItem('fp_t');localStorage.removeItem('fp_p');sessionStorage.clear();location.href='index.html'};
 $('#pl').textContent=PL[plat];
 const po=api('orders',{platform:plat}).catch(e=>{say(e.message);return{orders:[]}});
 const r=await start(),yt=plat==='youtube',list=Object.values(r.profiles[plat]||{}),t=$('#t');
-if(!list.length)t.innerHTML='<p class="m">Link a profile first on the Profiles page.</p>';
+const NM={subscribe:'Subscribers',follow:'Followers',like:'Likes',watch:'Watch time'},SG={subscribe:'subscriber',follow:'follower',like:'like'};
+const COST={subscribe:[3,4,5],follow:[3,4,5],like:[2,3,4]},TN=['Normal','Premium','Ultra premium'],TV=['normal','premium','ultra'];
+if(!list.length)t.innerHTML='<div class="card"><p class="m">Link a profile first on the Profiles page.</p></div>';
 else{
   const o=(await po).orders;
-  t.innerHTML=`<div class="card"><select id="bp">${list.map(p=>`<option>${esc(p.handle)}</option>`).join('')}</select><select id="bt">${(yt?['subscribe','like']:['follow','like']).map(x=>`<option>${x}</option>`).join('')}</select><select id="bl"><option value="normal">Normal · 3 points each</option><option value="premium">Premium · 4 points each</option><option value="ultra">Ultra · 5 points each</option></select><input id="bq" type="number" min="1" max="1000" value="10"><input id="bk" placeholder="Video or reel link (subscribe and like)"><button id="bg">Create order</button><p class="m">Likes cost 2 points each and ignore the tier. Higher tiers are shown to earners first.</p></div>${o.map(x=>`<div class="row"><span>${x.type} · ${esc(x.handle)} · ${x.tier}</span><span>${x.done||0}/${x.qty}</span></div>`).join('')}`;
-  $('#bg').onclick=async()=>{try{await api('boost',{platform:plat,handle:$('#bp').value,type:$('#bt').value,tier:$('#bl').value,qty:+$('#bq').value,link:$('#bk').value});location.reload()}catch(e){say(e.message)}};
+  t.innerHTML=`<div class="card"><select id="bp">${list.map(p=>`<option>${esc(p.handle)}</option>`).join('')}</select><select id="bt">${(yt?['subscribe','like','watch']:['follow','like']).map(x=>`<option value="${x}">${NM[x]}</option>`).join('')}</select><select id="bl"></select><input id="bq" type="number" min="1" inputmode="numeric"><input id="bw" type="number" min="1" inputmode="numeric" placeholder="Video length in minutes" hidden><input id="bk" placeholder="Video link" hidden><p class="m" id="sum"></p><button id="bg">Create order</button></div>${o.map(x=>`<div class="row"><span>${TN[TV.indexOf(x.tier)]} ${x.type==='watch'?'watch time':SG[x.type]}<br><span class="m">${esc(x.handle)}</span></span><span>${x.done||0}/${x.qty}</span></div>`).join('')}`;
+  const upd=()=>{
+    const ty=$('#bt').value,w=ty==='watch',ix=Math.max(0,$('#bl').selectedIndex);
+    $('#bl').hidden=w;$('#bl').innerHTML=TV.map((v,i)=>`<option value="${v}">${TN[i]} ${SG[ty]||''}</option>`).join('');$('#bl').selectedIndex=ix;
+    $('#bk').hidden=ty==='follow';$('#bk').placeholder=yt?'Video link (must be on this channel)':'Reel or post link (must be on this account)';
+    $('#bw').hidden=!w;$('#bq').placeholder=w?'Total watch time wanted (minutes)':'How many '+NM[ty].toLowerCase();
+    const q=+$('#bq').value||0;let sm;
+    if(w){const len=+$('#bw').value||0;if(q&&len){const m=Math.min(15,Math.floor(len)),n=Math.ceil(q/m);sm=`${n} tasks of ${m} min (${n*m} min total) · ${n*m*4} points`}else sm='Enter the total minutes and the video length.'}
+    else sm=q?`Total: ${q*COST[ty][$('#bl').selectedIndex]} points`:'Enter how many you want.';
+    $('#sum').textContent=sm;
+  };
+  ['bt','bl','bq','bw'].forEach(i=>{$('#'+i).oninput=upd});upd();
+  $('#bg').onclick=async()=>{const ty=$('#bt').value,b=$('#bg');b.disabled=true;b.textContent='Checking…';
+    try{const x=await api('boost',{platform:plat,handle:$('#bp').value,type:ty,tier:$('#bl').value,qty:+$('#bq').value,total:+$('#bq').value,len:+$('#bw').value,link:$('#bk').value});
+      ok(`${x.cost} points used. Your order is live.`,'Order placed',()=>location.reload());
+    }catch(e){say(e.message,'Could not create order');b.disabled=false;b.textContent='Create order'}};
 }
 </script></body></html>
