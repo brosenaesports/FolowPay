@@ -9,6 +9,7 @@ exports.handler = async e => {
   if (bad) return R(500, { error: bad });
   let b; try { b = JSON.parse(e.body || '{}'); } catch { return R(400, { error: 'Bad request' }); }
   try {
+    if (typeof b.action === 'string' && b.action.startsWith('adm')) return await require('./admin')(b, R);
     if (b.action === 'guest') {
       const uid = 'g_' + crypto.randomBytes(12).toString('hex');
       await db.ref('users/' + uid).set({ points: 0, guest: true, created: Date.now() });
@@ -31,7 +32,7 @@ exports.handler = async e => {
       return R(200, { ok: true });
     }
     const ur = db.ref('users/' + u.uid);
-    const NEED = ['me', 'verifyTask', 'boost', 'refInfo', 'useRef', 'buy'];      // other actions skip this read (faster)
+    const NEED = ['me', 'verifyTask', 'boost', 'refInfo', 'useRef', 'buy', 'redeem'];      // other actions skip this read (faster)
     const [us, ps] = NEED.includes(b.action) ? await Promise.all([ur.get(), b.action === 'me' ? db.ref('userProfiles/' + u.uid).get() : null]) : [null, null];
     let me = us ? us.val() : {};
     if (us && !me) {
@@ -39,7 +40,7 @@ exports.handler = async e => {
       await ur.set(me);
     }
     if (b.action === 'me') return R(200, { user: me, profiles: ps.val() || {} });
-    const g = (await require('./game')(b, u, me, ur, R)) || (await require('./pay')(b, u, me, ur, R)) || (await require('./refer')(b, u, me, ur, R));
+    const g = (await require('./game')(b, u, me, ur, R)) || (await require('./pay')(b, u, me, ur, R)) || (await require('./refer')(b, u, me, ur, R)) || (await require('./store')(b, u, me, ur, R));
     if (g) return g;
     const p = b.platform; let h = String(b.handle || '').trim();
     if (!RE[p]) return R(400, { error: 'Unknown platform' });
