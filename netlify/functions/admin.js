@@ -20,7 +20,7 @@ module.exports = async (b, R) => {
     if (!good) {
       const n = (lk.n || 0) + 1;
       await db.ref('config/adminLock').set(n >= 5 ? { n: 0, until: Date.now() + 10 * 6e4 } : { n, until: 0 });
-      return R(403, { error: 'Wrong password' });
+      return R(403, { error: 'Wrong password. The server is checking the ' + (h ? 'password saved in Settings' : process.env.ADMIN_PASSWORD ? 'ADMIN_PASSWORD variable from Netlify' : 'default password') + '.' });
     }
     await db.ref('config/adminLock').set({ n: 0, until: 0 });
     return R(200, { atoken: mk(), isDefault: !h });
