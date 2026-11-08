@@ -22,17 +22,17 @@ if (!bad && !admin.apps.length) {
 }
 const db = bad ? null : admin.database();
 const sign = s => crypto.createHmac('sha256', process.env.SESSION_SECRET || '').update(s).digest('hex');
-const guestToken = id => `g.${id}.${sign(id)}`;
+const sess = uid => { const p = uid + '.' + (Date.now() + 30 * 864e5); return 's.' + p + '.' + sign(p); };
 async function auth(t) {
   if (!t) throw new Error('auth');
   try {
-    if (t.startsWith('g.')) {
-      const [, id, sig] = t.split('.');
-      if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(sign(id)))) throw 0;
-      return { uid: 'g_' + id, guest: true };
+    if (t.startsWith('s.')) {
+      const i = t.lastIndexOf('.'), p = t.slice(2, i), [uid, exp] = p.split('.');
+      if (!crypto.timingSafeEqual(Buffer.from(t.slice(i + 1)), Buffer.from(sign(p))) || +exp < Date.now()) throw 0;
+      return { uid, guest: uid.startsWith('g_') };
     }
     const d = await admin.auth().verifyIdToken(t);
     return { uid: d.uid, guest: false, email: d.email, name: d.name, pic: d.picture };
   } catch { throw new Error('auth'); }
 }
-module.exports = { db, auth, guestToken, crypto, bad };
+module.exports = { db, auth, sess, crypto, bad };
