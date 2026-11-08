@@ -19,20 +19,28 @@ input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid 
 .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
 .row button{width:auto;margin:0;padding:6px 12px}
 .m{color:#555;font-size:.9rem;margin:.4em 0}
-#msg{border:2px solid #000;border-radius:6px;padding:12px;margin:12px 0;font-weight:600}</style></head>
+.tabs{display:flex;gap:6px}.tabs button{margin:6px 0;padding:10px 6px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.pop{background:#fff;border:2px solid #000;border-radius:6px;padding:20px;max-width:360px;width:100%}
+.pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
+.tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
+@keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.tick{animation:none}}
+.av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
 <body data-page="buy">
 <header><b>FollowPay</b><span id="pts"></span></header><nav><a href="home.html">Home</a><a href="earn.html">Earn</a><a href="boost.html">Boost</a><a href="buy.html" class=on>Buy</a><a href="profiles.html">Profiles</a></nav>
-<main><div id="msg" hidden></div>
+<main>
 <h1>Buy points</h1><div class="card" id="packs"></div><div class="card" id="pay" hidden></div><h1>Transactions</h1><div id="tx"></div>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const say=m=>{const e=$('#msg');e.textContent=m||'';e.hidden=!m};
+const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
+const ok=(m,t,cb)=>say(m,t||'Done',cb);
 const PL={youtube:'YouTube',instagram:'Instagram'};
 const tok=localStorage.getItem('fp_t'),page=document.body.dataset.page,plat=sessionStorage.getItem('plat');
 if(!tok||tok==='undefined'){location.href='index.html';throw 0}
-if(!plat&&!['home','buy','profiles'].includes(page)){location.href='home.html';throw 0}
+if(!plat&&!['home','buy','profiles','refer'].includes(page)){location.href='home.html';throw 0}
 const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n+' points'};
 if(localStorage.getItem('fp_p'))$('#pts').textContent=localStorage.getItem('fp_p')+' points';
 async function api(action,x={}){
@@ -42,26 +50,31 @@ async function api(action,x={}){
   if(!r.ok)throw new Error(j.error||'Server error');
   return j;
 }
-const start=async()=>{try{const r=await api('me');setPts(r.user.points);return r}catch(e){say(e.message);throw e}};
+const start=async()=>{try{const r=await api('me');setPts(r.user.points);
+  const c=localStorage.getItem('fp_ref');if(c&&!r.user.refBy&&!(r.user.spent>0))api('useRef',{code:c}).catch(()=>{}).finally(()=>localStorage.removeItem('fp_ref'));
+  return r}catch(e){say(e.message);throw e}};
 const logout=()=>{localStorage.removeItem('fp_t');localStorage.removeItem('fp_p');sessionStorage.clear();location.href='index.html'};
 const PACKS=[[1,10],[20,70],[30,130],[50,300],[100,1000]];
 $('#packs').innerHTML=PACKS.map(([rs,pt],i)=>`<button class="o" data-k="${i}">₹${rs} → ${pt} points</button>`).join('');
-let cur=null,iv=null,n=0;
+let iv=null,busy=false;
 const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const paid=n=>{const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" style="text-align:center" role="alertdialog"><div class="tick">✓</div><b>Payment successful</b><p>+${n} points added to your account</p><button>Great</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON')d.remove()};document.body.append(d)};
 async function check(id,quiet){
   try{const r=await api('check',{orderId:id});
-    if(r.status==='PAID'){clearInterval(iv);if(r.points!=null)setPts(r.points);if($('#ps')&&cur&&cur.id===id)$('#ps').textContent='Payment received. Points added.';loadTx();return true}
+    if(r.status==='PAID'){clearInterval(iv);$('#pay').hidden=true;if(r.points!=null)setPts(r.points);if(r.pts)paid(r.pts);loadTx();return true}
     if(r.status==='EXPIRED'){clearInterval(iv);if($('#ps'))$('#ps').textContent='This order expired. Create a new one.';loadTx()}
-    else if(!quiet)say('Payment not received yet.');
+    else if(!quiet)say('Payment not received yet. Try again in a moment.','Not paid yet');
   }catch(e){if(!quiet)say(e.message)}
 }
 function show(o){
-  cur=o;clearInterval(iv);say('');const el=$('#pay');el.hidden=false;
-  el.innerHTML=`<b>Pay exactly ₹${o.amount}</b><p class="m">Order ${esc(o.id)} · ${o.pts} points · <span id="tm"></span></p><img src="${esc(o.qr)}" alt="UPI QR code" width="220" height="220" style="display:block;margin:8px auto;max-width:100%"><a class="b" href="${esc((o.intent&&o.intent.phonepe)||o.url)}">Pay with PhonePe</a><a class="b o" href="${esc((o.intent&&o.intent.paytm)||o.url)}">Pay with Paytm</a><p class="m" id="ps">Waiting for payment…</p>`;
-  n=0;iv=setInterval(()=>{n++;const left=Math.max(0,Math.round((o.exp-Date.now())/1000));$('#tm').textContent=fmt(left);if(n%3===0)check(o.id,true);if(left<=0&&n%3===0)clearInterval(iv)},1000);
+  clearInterval(iv);const el=$('#pay');el.hidden=false;
+  el.innerHTML=`<b>Pay exactly ₹${o.amount}</b><p class="m">Order ${esc(o.id)} · ${o.pts} points · <span id="tm"></span></p><img src="${esc(o.qr)}" alt="UPI QR code" width="220" height="220" style="display:block;margin:8px auto;max-width:100%"><a class="b" href="${esc((o.intent&&o.intent.phonepe)||o.url)}">Pay with PhonePe</a><a class="b o" href="${esc((o.intent&&o.intent.paytm)||o.url)}">Pay with Paytm</a><p class="m" id="ps">Waiting for payment… this page updates by itself.</p>`;
+  iv=setInterval(()=>{const left=Math.max(0,Math.round((o.exp-Date.now())/1000));$('#tm').textContent=fmt(left);
+    if(!busy){busy=true;check(o.id,true).finally(()=>busy=false)}
+    if(left<=0){clearInterval(iv);$('#ps').textContent='Time is up. If you already paid, tap Verify under Transactions.'}},1000);
   el.scrollIntoView({behavior:'smooth'});
 }
-document.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{show(await api('buy',{pack:+b.dataset.k}));loadTx()}catch(e){say(e.message)}b.disabled=false});
+document.querySelectorAll('[data-k]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{show(await api('buy',{pack:+b.dataset.k}));loadTx()}catch(e){say(e.message,'Could not create order')}b.disabled=false});
 async function loadTx(){
   try{const {txs}=await api('txs'),now=Date.now();
     $('#tx').innerHTML=txs.map(x=>{const live=x.status==='PENDING'&&now<x.exp+60000;
