@@ -104,13 +104,15 @@ const fail=e=>{if(/^Admin session/.test(e.message)){sessionStorage.removeItem('f
 const ta='style="width:100%;border:2px solid #000;border-radius:10px;padding:10px;font:inherit;margin:6px 0"';
 let tab='tasks';
 function login(){
-  root.innerHTML=`<div class="card"><input id="pw" type="password" placeholder="Admin password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"><button class="o" id="sh" type="button">Show password</button><button id="go">${I('lock')} Log in</button></div>`;
-  $('#sh').onclick=()=>{const i=$('#pw'),h=i.type==='password';i.type=h?'text':'password';$('#sh').textContent=h?'Hide password':'Show password'};
-  $('#go').onclick=async()=>{try{const r=await api('admLogin',{password:$('#pw').value});sessionStorage.setItem('fp_a',r.atoken);sessionStorage.setItem('fp_d',r.isDefault?'1':'');panel()}catch(e){say(e.message,'Login failed')}};
+  root.innerHTML=`<div class="card"><b>${I('lock')} Admin sign in</b><p class="m">Only approved Google accounts can enter.</p><button id="gg">${I('user')} Sign in with Google</button></div>`;
+  $('#gg').onclick=async()=>{try{const V='https://www.gstatic.com/firebasejs/10.12.2/',[A,B]=await Promise.all([import(V+'firebase-app.js'),import(V+'firebase-auth.js')]);
+    const c=await B.signInWithPopup(B.getAuth(A.initializeApp(CFG)),new B.GoogleAuthProvider());
+    const r=await api('admGoogle',{idToken:await c.user.getIdToken()});sessionStorage.setItem('fp_a',r.atoken);panel()
+  }catch(e){say(e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':e.code==='auth/unauthorized-domain'?'Add this website address in Firebase → Authentication → Settings → Authorized domains.':e.message,'Admin sign-in failed')}};
 }
 function panel(){
-  const N={tasks:'Tasks',rewards:'Rewards',users:'Users',revenue:'Revenue',settings:'Settings'};
-  root.innerHTML=(sessionStorage.getItem('fp_d')?`<div class="card"><b>Default password in use</b><p class="m">Change it now under Settings.</p></div>`:'')+`<div class="tabs" style="flex-wrap:wrap">${Object.entries(N).map(([k,n])=>`<button class="${k===tab?'':'o'}" data-t="${k}" style="flex:1 1 30%">${n}</button>`).join('')}</div><div id="ad"></div>`;
+  const N={tasks:'Tasks',rewards:'Rewards',users:'Users',revenue:'Revenue',settings:'Admins'};
+  root.innerHTML=`<div class="tabs" style="flex-wrap:wrap">${Object.entries(N).map(([k,n])=>`<button class="${k===tab?'':'o'}" data-t="${k}" style="flex:1 1 30%">${n}</button>`).join('')}</div><div id="ad"></div>`;
   root.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;panel()});
   ({tasks,rewards,users,revenue,settings})[tab]().catch(fail);
 }
@@ -141,8 +143,10 @@ async function revenue(){
   $('#ad').innerHTML=c('Today',r.today)+c('Last 7 days',r.week)+c('This month',r.month)+c('This year',r.year)+c('All time',r.total)+`<h1>By month</h1>`+(r.months.map(([m,v])=>`<div class="row"><span>${m}</span><b>₹${v}</b></div>`).join('')||'<p class="m">No payments yet.</p>');
 }
 async function settings(){
-  $('#ad').innerHTML=`<div class="card"><b>Change admin password</b><input id="np" type="password" placeholder="New password (8+ characters)" autocomplete="new-password"><button id="sp">Save password</button></div>`;
-  $('#sp').onclick=async()=>{try{await A('admSetPw',{password:$('#np').value});sessionStorage.setItem('fp_d','');ok('Password changed. Use it next time you log in.','Saved',panel)}catch(e){fail(e)}};
+  const {admins:l,fixed:f}=await A('admAdmins');
+  $('#ad').innerHTML=`<div class="card"><b>Admin Google accounts</b><p class="m">Only these accounts can open this panel.</p>${f.map(e=>`<div class="row"><span>${esc(e)}</span><span class="m">Netlify variable</span></div>`).join('')}${l.map(x=>`<div class="row"><span>${esc(x.email)}</span><button class="o" data-d="${x.key}">Remove</button></div>`).join('')}</div><div class="card"><input id="ae" type="email" placeholder="Add an admin Gmail address" autocapitalize="off"><button id="aa">Add admin</button></div>`;
+  $('#aa').onclick=async()=>{try{await A('admAddAdmin',{email:$('#ae').value});ok('Admin added.','Saved',settings)}catch(e){fail(e)}};
+  $('#ad').querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(await ask('Remove this admin?','They will no longer be able to open the panel.')===null)return;try{await A('admDelAdmin',{key:b.dataset.d});ok('Admin removed.','Done',settings)}catch(e){fail(e)}});
 }
 sessionStorage.getItem('fp_a')?panel():login();
 </script></body></html>
