@@ -12,6 +12,14 @@ const safe = s => String(s || '').replace(/[^\w-]/g, '');
 
 module.exports = async (b, R) => {
   const a = b.action;
+  if (a === 'admClaim') {                                            // one-time setup: the first Google account becomes admin, then this is closed
+    let g; try { g = await auth(b.idToken); } catch { return R(403, { error: 'Google sign-in could not be verified' }); }
+    if (!g.email) return R(403, { error: 'This Google account has no email address' });
+    if ((await emails()).length) return R(403, { error: 'An admin already exists. Open admin.html and sign in; add more admins under the Admins tab.' });
+    const t = await db.ref('config/adminEmails').transaction(c => c === null ? { main: String(g.email).toLowerCase() } : undefined);
+    if (!t.committed) return R(403, { error: 'An admin already exists. Open admin.html and sign in.' });
+    return R(200, { ok: true, email: String(g.email).toLowerCase() });
+  }
   if (a === 'admGoogle') {                                           // the only way in: a Google account on the admin list
     let g; try { g = await auth(b.idToken); } catch { return R(403, { error: 'Google sign-in could not be verified' }); }
     const list = await emails();
