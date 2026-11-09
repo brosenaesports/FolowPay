@@ -1,6 +1,8 @@
-const { db, crypto, sign } = require('./lib');
-const DEFAULT_PW = 'QL9ghPBe4UTe';                                       // used until you set ADMIN_PASSWORD or change it in Settings
-const hashPw = (pw, salt) => crypto.scryptSync(pw, salt, 32).toString('hex');
+const { db, crypto, sign, auth } = require('./lib');
+const emails = async () => {                                         // admin Gmail addresses: Firebase (config/adminEmails) + optional Netlify variable
+  const fromDb = Object.values((await db.ref('config/adminEmails').get()).val() || {});
+  return [...String(process.env.ADMIN_EMAILS || '').split(/[,\s;]+/), ...fromDb].map(x => String(x).trim().toLowerCase()).filter(Boolean);
+};
 const mk = () => { const e = Date.now() + 12 * 36e5; return `a.${e}.${sign('adm.' + e)}`; };
 const valid = t => { try { const [, e, sig] = String(t).split('.'); return +e > Date.now() && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(sign('adm.' + e))); } catch { return false; } };
 const ist = ms => new Date(ms + 19800000).toISOString().slice(0, 10);
@@ -10,28 +12,29 @@ const safe = s => String(s || '').replace(/[^\w-]/g, '');
 
 module.exports = async (b, R) => {
   const a = b.action;
-  if (a === 'admLogin') {
-    const lk = (await db.ref('config/adminLock').get()).val() || {};
-    if ((lk.until || 0) > Date.now()) return R(429, { error: 'Too many wrong attempts. Try again in 10 minutes.' });
-    const h = (await db.ref('config/adminHash').get()).val(), pw = String(b.password || '').trim();   // ignore stray spaces from pasting
-    let good = false;
-    if (h) { const [salt, hx] = h.split(':'); good = crypto.timingSafeEqual(Buffer.from(hashPw(pw, salt)), Buffer.from(hx)); }
-    else { const d = process.env.ADMIN_PASSWORD || DEFAULT_PW; good = pw.length === d.length && crypto.timingSafeEqual(Buffer.from(pw), Buffer.from(d)); }
-    if (!good) {
-      const n = (lk.n || 0) + 1;
-      await db.ref('config/adminLock').set(n >= 5 ? { n: 0, until: Date.now() + 10 * 6e4 } : { n, until: 0 });
-      return R(403, { error: 'Wrong password. The server is checking the ' + (h ? 'password saved in Settings' : process.env.ADMIN_PASSWORD ? 'ADMIN_PASSWORD variable from Netlify' : 'default password') + '.' });
-    }
-    await db.ref('config/adminLock').set({ n: 0, until: 0 });
-    return R(200, { atoken: mk(), isDefault: !h });
+  if (a === 'admGoogle') {                                           // the only way in: a Google account on the admin list
+    let g; try { g = await auth(b.idToken); } catch { return R(403, { error: 'Google sign-in could not be verified' }); }
+    const list = await emails();
+    if (!list.length) return R(403, { error: 'No admin email is set yet. In Firebase Realtime Database add config / adminEmails / main with your Gmail address as the value.' });
+    if (!g.email || !list.includes(String(g.email).toLowerCase())) return R(403, { error: (g.email || 'This account') + ' is not an admin account' });
+    return R(200, { atoken: mk() });
   }
   if (!valid(b.atoken)) return R(403, { error: 'Admin session ended. Log in again.' });
 
-  if (a === 'admSetPw') {
-    const pw = String(b.password || '').trim();
-    if (pw.length < 8) return R(400, { error: 'Use at least 8 characters' });
-    const salt = crypto.randomBytes(8).toString('hex');
-    await db.ref('config/adminHash').set(salt + ':' + hashPw(pw, salt));
+  if (a === 'admAdmins') {
+    const v = (await db.ref('config/adminEmails').get()).val() || {};
+    return R(200, { admins: Object.entries(v).map(([key, email]) => ({ key, email })), fixed: String(process.env.ADMIN_EMAILS || '').split(/[,\s;]+/).map(x => x.trim()).filter(Boolean) });
+  }
+  if (a === 'admAddAdmin') {
+    const e = String(b.email || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return R(400, { error: 'Enter a valid email address' });
+    if ((await emails()).includes(e)) return R(400, { error: 'This email is already an admin' });
+    await db.ref('config/adminEmails').push(e);
+    return R(200, { ok: true });
+  }
+  if (a === 'admDelAdmin') {
+    if ((await emails()).length <= 1) return R(400, { error: 'You cannot remove the last admin' });
+    await db.ref('config/adminEmails/' + safe(b.key)).remove();
     return R(200, { ok: true });
   }
   if (a === 'admTasks') {                                            // highest priority first, then biggest remaining amount
