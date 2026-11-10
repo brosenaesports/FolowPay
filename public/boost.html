@@ -121,7 +121,12 @@ $('#rt').onclick=()=>box('Boost rates',(yt?RT(I('bell')+' Normal subscriber','3 
   +RT(I('heart')+' Normal like','2 points')+RT(I('star')+' Premium like','3 points')+RT(I('zap')+' Ultra premium like','4 points')
   +RT(I('eye')+' Views','1 point')+RT(I('msg')+' Comments','1 point')+(yt?RT(I('clock')+' Watch time','8 points / minute'):RT(I('boost')+' Profile visits','1 point'))
   +'<p class="m">Premium and Ultra premium orders get fast boosting priority and a free refill for up to 30 days (one refill per order).</p>');
-const r=await start(),list=Object.values(r.profiles[plat]||{}),t=$('#t');
+const t=$('#t'),TO=ms=>new Promise((_,j)=>setTimeout(()=>j(new Error('The server is taking too long. Tap Retry.')),ms));
+t.innerHTML='<div class="ld"><span class="sp"></span><span>Loading your profiles… the server may take a few seconds to wake up.</span></div>';
+let r;
+try{r=await Promise.race([start(),TO(25000)])}
+catch(e){t.innerHTML=`<div class="card"><p class="m">${esc(e.message)}</p><button id="rty">Retry</button></div>`;$('#rty').onclick=()=>location.reload();throw e}
+const list=Object.values(r.profiles[plat]||{});
 const CATS=yt?[['subscribe','Subscribers','bell'],['like','Likes','heart'],['views','Views','eye'],['comment','Comments','msg'],['watch','Watch time','clock']]:[['follow','Followers','follow'],['like','Likes','heart'],['views','Views','eye'],['comment','Comments','msg'],['visits','Profile visits','boost']];
 const PRI=[['normal','Normal','user','Standard speed.'],['premium','Premium','star','Fast boosting priority + free refill for up to 30 days.'],['ultra','Ultra premium','zap','Fastest boosting priority + free refill for up to 30 days.']];
 const NMS={subscribe:'Subscribers',follow:'Followers',like:'Likes',views:'Views',comment:'Comments',watch:'Watch time',visits:'Profile visits'},IC2={subscribe:'bell',follow:'follow',like:'heart',views:'eye',comment:'msg',watch:'clock',visits:'boost'};
@@ -136,9 +141,6 @@ const row=x=>{
   const rf=x.refill?`<p class="m">${I('refresh')} Refill: <b>${RS[x.refill.status]||'In review'}</b></p>`:x.canRefill?`<button class="o" data-rf="${x.id}">${I('refresh')} Request refill · until ${new Date(x.refillUntil).toLocaleDateString()}</button>`:(hasPri(x.type)&&x.tier!=='normal'?`<p class="m">${I('refresh')} 30-day refill included</p>`:'');
   const dl=dn?x.qty:d;
   return `<div class="card"><div class="row" style="border:0;padding:0"><b>${I(IC2[x.type])} ${NMS[x.type]}</b><span class="st ${dn?'ok':''}">${dn?'Completed':'In progress'}</span></div><div style="margin:6px 0">${tag}</div><p class="m">${esc(x.handle)}</p><div class="pb" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><i style="width:${p}%"></i></div><p class="m"><b>${w?dl*x.mins+' of '+x.qty*x.mins+' min':dl+' of '+x.qty}</b> delivered · ${p}%</p>${rf}</div>`};
-const showOrders=o=>{const l=[...o.filter(x=>x.status!=='completed'),...o.filter(x=>x.status==='completed')];$('#ol').innerHTML=l.map(row).join('')||'<p class="m">No orders yet.</p>'};
-const loadOrders=()=>api('orders',{platform:plat}).then(j=>showOrders(j.orders)).catch(()=>{});
-t.innerHTML=(list.length?`<div class="card"><select id="bp">${list.map(p=>`<option>${esc(p.handle)}</option>`).join('')}</select><p class="m">Category</p><div class="grid" id="cg"></div><div id="prw"><p class="m">Priority</p><div class="grid" id="pg"></div><p class="m" id="pn"></p></div><select id="bpk" hidden>${PK.map(m=>`<option value="${m}">${m>=1000?m.toLocaleString('en-IN'):m} minutes</option>`).join('')}</select><input id="bq" type="number" min="1" inputmode="numeric"><input id="bw" type="number" min="1" inputmode="numeric" placeholder="Video length in minutes" hidden><input id="bk" placeholder="Video link" hidden><p class="m" id="sum"></p><button id="bg">Create order</button></div>`:'<div class="card"><p class="m">Link a profile first on the Profiles page.</p></div>')+'<h1>My orders</h1><div id="ol"><p class="m">Loading orders…</p></div>';
-loadOrders();setInterval(loadOrders,15000);
-$('#ol').onclick=async e=>{const b=e.target.closest('[data-rf]');if(!b)return;
-  if(await ask('Request a refill?','You can request one refill per order, withi
+const showOrders=o=>{const l=[...o.filter(x=>x.status!=='completed'),...o.filter(x=>x.status==='completed')];$('#ol').innerHTML=l.map(x=>{try{return row(x)}catch(e){return ''}}).join('')||'<p class="m">No orders yet.</p>'};
+const loadOrders=()=>Promise.race([api('orders',{platform:plat}),TO(25000)]).then(j=>showOrders(j.orders)).catch(e=>{$('#ol').innerHTML=`<div class="card"><p class="m">${esc(e.message)}</p><button class="o" id="ro">Retry</button></div>`;$('#ro').onclick=()=>{$('#ol').innerHTML='<p class="m">Loading orders…</p>';loadOrders()}});
+t.innerHTML=(list.length?`<div class="card"><select id="bp">${list.map(p=>`<option>${esc(p.handle)}</option>`).join('')}</select><p class="m">Category</p><div class="grid" id="cg"></div><div id="prw"><p class="m">Priority</p><div class="grid" id="pg"></div><p class="m" id="pn"></p></div><select id="bpk" hidden>${PK.map(m=>`<option v
