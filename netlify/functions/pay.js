@@ -39,6 +39,7 @@ module.exports = async (b, u, me, ur, R) => {
     if (!c.committed) return R(200, { status: 'PAID' });
     await ref.child(id).update({ status: 'PAID', paid: Date.now() });
     await db.ref('revenue/' + new Date(Date.now() + 19800000).toISOString().slice(0, 10)).transaction(x => (x || 0) + rec.rs);   // revenue per day (IST)
+    await db.ref('revenuePts/' + new Date(Date.now() + 19800000).toISOString().slice(0, 10)).transaction(x => (x || 0) + rec.pts);   // points sold per day
     const t = await ur.child('points').transaction(x => (x || 0) + rec.pts);
     return R(200, { status: 'PAID', points: t.snapshot.val(), pts: rec.pts });
   }
