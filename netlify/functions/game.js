@@ -19,7 +19,7 @@ let oc = { t: 0, v: null };
 
 module.exports = async (b, u, me, ur, R) => {
   const a = b.action, p = b.platform;
-  if (!['tasks', 'startTask', 'verifyTask', 'boost', 'orders', 'refill'].includes(a)) return null;
+  if (!['tasks', 'startTask', 'skipTask', 'verifyTask', 'boost', 'orders', 'refill'].includes(a)) return null;
   const ids = async fresh => {                                      // warm servers reuse the order list for 3 seconds
     if (!fresh && oc.v && Date.now() - oc.t < 3000) return oc.v;
     const v = (await db.ref('orders').limitToLast(200).get()).val() || {};
@@ -49,17 +49,23 @@ module.exports = async (b, u, me, ur, R) => {
       qty: o.qty, done: o.done || 0, created: o.created, completedAt: o.completedAt || null, at: Date.now(), status: 'review', note: '' });
     return R(200, { ok: true });
   }
-  if (a === 'tasks') {
+  if (a === 'tasks') {                                              // one random task (no filter); Premium / Ultra premium come up more often
     if (!TYPES[p]) return R(400, { error: 'Unknown platform' });
-    const [ms, o] = await Promise.all([db.ref(`userProfiles/${u.uid}/${p}`).get(), ids()]);
+    const [ms, o, sk, sr] = await Promise.all([db.ref(`userProfiles/${u.uid}/${p}`).get(), ids(), ur.child('skips').get(), ur.child('earnStreak').get()]);
     if (!ms.exists()) return R(400, { error: 'Link a profile first on the Profiles page' });
-    const skip = Array.isArray(b.skip) ? b.skip : [];
-    const c = Object.entries(o).filter(([id, x]) => x.platform === p && !x.smm && x.type !== 'visits' && (!b.type || x.type === b.type) && x.uid !== u.uid && (x.done || 0) < x.qty && !skip.includes(id))
-      .sort((x, y) => W[y[1].tier] - W[x[1].tier] || x[1].created - y[1].created).slice(0, 8);
-    const free = await Promise.all(c.map(async ([id]) => !(await db.ref(`done/${id}/${u.uid}`).get()).exists()));
-    const list = c.filter((_, i) => free[i]), t = list[0];
-    return R(200, { left: list.length, task: t ? { id: t[0], type: t[1].type, tier: t[1].tier, handle: t[1].handle, reward: rew(t[1]), mins: t[1].mins || null,
-      link: t[1].type === 'follow' ? `https://www.instagram.com/${encodeURIComponent(t[1].handle.replace(/^@/, ''))}/` : t[1].link } : null });
+    const skip = Array.isArray(b.skip) ? b.skip.slice(0, 200) : [];
+    const c = Object.entries(o).filter(([id, x]) => x.platform === p && !x.smm && x.type !== 'visits' && x.uid !== u.uid && (x.done || 0) < x.qty && !skip.includes(id))
+      .map(([id, x]) => ({ id, x, k: -Math.log(1 - Math.random()) / W[x.tier || 'normal'] }))     // weighted random order
+      .sort((m, n) => m.k - n.k).slice(0, 12);
+    const free = await Promise.all(c.map(async e => !(await db.ref(`done/${e.id}/${u.uid}`).get()).exists()));
+    const t = c.filter((_, i) => free[i])[0];
+    return R(200, { skips: Math.min(2, sk.val() || 0), streak: (sr.val() || 0) % 3, task: t ? { id: t.id, type: t.x.type, tier: t.x.tier, handle: t.x.handle, reward: rew(t.x), mins: t.x.mins || null,
+      link: t.x.type === 'follow' ? `https://www.instagram.com/${encodeURIComponent(t.x.handle.replace(/^@/, ''))}/` : t.x.link } : null });
+  }
+  if (a === 'skipTask') {                                           // 3 completed tasks unlock 2 skips (checked here, not in the browser)
+    const t = await ur.child('skips').transaction(x => (x || 0) > 0 ? x - 1 : undefined);
+    if (!t.committed) return R(400, { error: 'Complete 3 tasks to unlock 2 skips' });
+    return R(200, { skips: t.snapshot.val() });
   }
   if (a === 'startTask') {
     await db.ref('sessions/' + u.uid).set({ o: b.orderId, at: Date.now() });
@@ -85,8 +91,11 @@ module.exports = async (b, u, me, ur, R) => {
     if (t.snapshot.val() >= o.qty) await db.ref(`orders/${b.orderId}/completedAt`).set(Date.now());   // 100% delivered -> completed
     await ur.child('points').transaction(x => (x || 0) + rew(o));
     await ur.update({ strikes: 0 });
+    const sc = await ur.child('earnStreak').transaction(x => (x || 0) + 1 >= 3 ? 0 : (x || 0) + 1);
+    let unlocked = false;
+    if (sc.snapshot.val() === 0) { await ur.child('skips').transaction(x => Math.min(2, (x || 0) + 2)); unlocked = true; }   // every 3rd task unlocks 2 skips (max 2 stored)
     await db.ref('sessions/' + u.uid).remove();
-    return R(200, { reward: rew(o) });
+    return R(200, { reward: rew(o), unlocked });
   }
   // ---- boost ----
   const type = b.type, h = String(b.handle || '');
