@@ -1,7 +1,6 @@
-
 const { db } = require('./lib');
 const BASE = 'https://gateway.anujbots.in/';
-const PACKS = [[1, 10], [20, 70], [30, 130], [50, 300], [100, 1000]];   // [rupees, points]
+const PACKS = [[1, 2], [2, 6], [10, 35], [20, 74], [50, 180], [80, 80], [135, 500], [300, 1000]];   // [rupees, points]
 const call = async path => (await fetch(BASE + path)).json();
 
 module.exports = async (b, u, me, ur, R) => {
