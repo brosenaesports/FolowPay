@@ -46,6 +46,7 @@ module.exports = async (b, u, me, ur, R) => {
   }
   const rr = db.ref('redeems/' + u.uid).push();
   await rr.set(rec);
+  await db.ref(`rewardSpend/${new Date(rec.at + 19800000).toISOString().slice(0, 10)}/${it.type}`).transaction(x => Math.round(((x || 0) + it.rs) * 100) / 100);   // money given as rewards (admin only)
   if (it.type === 'upi') await db.ref('upiReq/' + rr.key).set({ rid: rr.key, uid: u.uid, email: me.email || null, upi, rs: it.rs, pts: it.pts, status: 'pending', at: rec.at });
   return R(200, { ok: true, rec });
 };
