@@ -2,119 +2,15 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Boost – FollowPay</title><meta name="description" content="Earn points by subscribing, following and liking. Spend them to grow your own YouTube channel or Instagram profile."><meta name="robots" content="noindex">
 <link rel="icon" href="/logo.png">
-<style>*{box-sizing:border-box}[hidden]{display:none!important}
-body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff;color:#000}
-header{display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;padding:16px;border-bottom:2px solid #000}
-header b{font-size:1.25rem;letter-spacing:-.02em}
-nav{display:flex;gap:4px;max-width:520px;margin:0 auto;padding:10px 16px 0}
-nav a{flex:1;text-align:center;padding:8px 2px;border:2px solid #000;border-radius:6px;color:#000;text-decoration:none;font-weight:600;font-size:.8rem}
-nav a.on{background:#000;color:#fff}
-main{max-width:520px;margin:0 auto;padding:8px 16px 40px}
-h1{font-size:1.5rem;line-height:1.15;margin:.4em 0;letter-spacing:-.02em}
-.card{border:2px solid #000;border-radius:6px;padding:16px;margin:16px 0}
-button,a.b{display:block;font:inherit;font-weight:600;width:100%;padding:13px 16px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#000;color:#fff;cursor:pointer;text-align:center;text-decoration:none}
-.o{background:#fff!important;color:#000!important}
-button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #000;outline-offset:2px}
-input,select{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid #000;border-radius:6px;background:#fff;color:#000}
-.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #000}
-.row button{width:auto;margin:0;padding:6px 12px}
-.m{color:#555;font-size:.9rem;margin:.4em 0}
-.tabs{display:flex;gap:6px}.tabs button{margin:6px 0;padding:10px 6px}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
-.pop{background:#fff;border:2px solid #000;border-radius:6px;padding:20px;max-width:360px;width:100%}
-.pop b{font-size:1.2rem}.pop p{margin:.6em 0 1em}.pop button{margin:0}
-.tick{width:72px;height:72px;margin:0 auto 12px;border:3px solid #000;border-radius:50%;font-size:2.4rem;line-height:66px;animation:pp .4s ease-out}
-@keyframes pp{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
-.full{position:fixed;inset:0;background:#fff;z-index:8;overflow:auto;padding:20px 16px;text-align:center}
-.fin{max-width:420px;margin:0 auto}
-.qr{display:block;width:min(80vw,340px);height:auto;margin:12px auto;padding:8px;border:2px solid #000;border-radius:6px;background:#fff}
-.okc{width:120px;height:120px;margin:0 auto 12px;display:block}
-.okc circle{stroke:#16a34a;stroke-width:3;stroke-dasharray:151;stroke-dashoffset:151;animation:dr .6s ease-out forwards}
-.okc path{stroke:#16a34a;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:dr .4s .5s ease-out forwards}
-@keyframes dr{to{stroke-dashoffset:0}}
-@media(prefers-reduced-motion:reduce){.tick{animation:none}.okc circle,.okc path{animation:none;stroke-dashoffset:0}}
-.ic{width:1.2em;height:1.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-.2em}
-header{position:sticky;top:0;background:#fff;z-index:5}
-header b{display:flex;align-items:center;gap:8px}
-.pill{display:inline-flex;align-items:center;gap:6px;border:2px solid #000;border-radius:999px;padding:3px 12px;font-weight:700}
-nav a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.68rem;padding:6px 2px;border-radius:10px}
-nav a .ic{width:1.4em;height:1.4em}
-.card{border-radius:12px;box-shadow:3px 3px 0 #000}
-button,a.b{display:flex;align-items:center;justify-content:center;gap:8px;border-radius:10px}
-button:active,a.b:active{transform:translate(1px,1px)}
-button:disabled{opacity:.45;cursor:not-allowed}
-input,select{border-radius:10px}
-.step{display:flex;gap:12px;align-items:flex-start;padding:8px 0}
-.ib{width:38px;height:38px;border:2px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none}
-.ld{display:flex;align-items:center;justify-content:center;gap:12px;padding:28px 0;font-weight:600}
-.sp{width:26px;height:26px;border:3px solid #ddd;border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-body.go::after{content:"";position:fixed;top:0;left:0;width:40%;height:3px;background:#000;z-index:30;animation:bar 1s ease-in-out infinite}
-@keyframes bar{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
-@media(prefers-reduced-motion:reduce){.sp{animation:none;border-top-color:#000}body.go::after{animation:none;width:100%}}
-.hd{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.sm{width:auto;padding:8px 12px;margin:0;font-size:.85rem}
-.act.go{background:#16a34a;border-color:#16a34a;color:#fff}
-.act.wait{background:#eee;color:#000}
-.tm{font-size:2.6rem;font-weight:800;text-align:center;margin:.1em 0;font-variant-numeric:tabular-nums}
-.pb{height:12px;border:2px solid #000;border-radius:999px;overflow:hidden;background:#fff}
-.pb i{display:block;height:100%;background:#000}
-.av.big{width:56px;height:56px;font-size:1.3rem}
-a.b.sm{width:auto}
-.tabs{flex-wrap:wrap}.tabs button{flex:1 1 28%}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:6px;margin:6px 0}
-.grid button{flex-direction:column;gap:4px;margin:0;padding:10px 4px;font-size:.78rem}
-.tag{display:inline-flex;align-items:center;gap:4px;border:2px solid #000;border-radius:999px;padding:1px 9px;font-size:.75rem;font-weight:700}
-.st{font-size:.8rem;font-weight:700;border:2px solid #000;border-radius:999px;padding:1px 9px}
-.st.ok{border-color:#16a34a;color:#16a34a}
-.av{width:44px;height:44px;border-radius:50%;border:2px solid #000;object-fit:cover;flex:none;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:#fff}</style></head>
+<link rel="stylesheet" href="/core.css?v=14"></head>
 <body data-page="boost">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10H3z"/><path d="M9 21v-6h6v6"/></symbol><symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.8c0-1.2 1-1.8 2.5-1.8s2.5.7 2.5 1.8c0 2.4-5 1.2-5 3.8 0 1.2 1 1.9 2.5 1.9s2.5-.6 2.5-1.9"/></symbol><symbol id="i-boost" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol><symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol><symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13M12 8C9 8 8 4.5 10 4s2 4 2 4zM12 8c3 0 4-3.5 2-4s-2 4-2 4z"/></symbol><symbol id="i-yt" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z"/></symbol><symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.5-8 11-8 11z"/></symbol><symbol id="i-follow" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol><symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8h16v-8M12 15V3M8 7l4-4 4 4"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol><symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></symbol><symbol id="i-swap" viewBox="0 0 24 24"><path d="M17 3l4 4-4 4M21 7H8M7 21l-4-4 4-4M3 17h13"/></symbol><symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-msg" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.5 7.2L3 21l1.8-5.5A8 8 0 1 1 21 12z"/></symbol><symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol><symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-4M4 4v4h4M4 13a8 8 0 0 0 14 4M20 20v-4h-4"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol></defs></svg><header><b><svg class="ic" aria-hidden="true"><use href="#i-boost"/></svg> FollowPay</b><span class="pill" id="pw" hidden><svg class="ic" aria-hidden="true"><use href="#i-coin"/></svg><span id="pts"></span></span></header><nav><a href="home.html"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Home</span></a><a href="earn.html"><svg class="ic" aria-hidden="true"><use href="#i-coin"/></svg><span>Earn</span></a><a href="boost.html" class=on><svg class="ic" aria-hidden="true"><use href="#i-boost"/></svg><span>Boost</span></a><a href="buy.html"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg><span>Buy</span></a><a href="store.html"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg><span>Rewards</span></a><a href="refer.html"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg><span>Refer</span></a><a href="profiles.html"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>Profile</span></a></nav>
 <main>
 <div class="ld" id="ld" role="status" aria-live="polite"><span class="sp"></span><span>Loading…</span></div>
 <div id="sp"></div><div class="hd"><h1>Boost</h1><button class="o sm" id="rt"><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg> Rates</button></div><div id="t"></div>
 </main>
+<script src="/core.js?v=14"></script>
 <script type="module">
-const $=s=>document.querySelector(s);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
-const ok=(m,t,cb)=>say(m,t||'Done',cb);
-const ask=(t,m,ph)=>new Promise(res=>{const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="dialog"><b>${esc(t)}</b><p>${esc(m)}</p>${ph?`<input placeholder="${esc(ph)}" autocapitalize="off" autocomplete="off">`:''}<button>Confirm</button><button class="o" style="margin-top:8px">Cancel</button></div>`;document.body.append(d);const i=d.querySelector('input'),[c,x]=d.querySelectorAll('button');c.onclick=()=>{d.remove();res(i?i.value:'')};x.onclick=()=>{d.remove();res(null)}});
-const PL={youtube:'YouTube',instagram:'Instagram'};
-const tok=localStorage.getItem('fp_t'),page=document.body.dataset.page,plat=localStorage.getItem('plat')||'youtube';
-if((!tok||tok==='undefined')&&!['admin','setup-admin'].includes(page)){location.href='index.html';throw 0}
-if(!plat&&!['home','buy','profiles','refer','store','admin','setup-admin'].includes(page)){location.href='home.html';throw 0}
-const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n;$('#pw').hidden=false};
-if(localStorage.getItem('fp_p')){$('#pts').textContent=localStorage.getItem('fp_p');$('#pw').hidden=false}
-async function api0(action,x={}){
-  let r,j;
-  try{r=await fetch('/api',{method:'POST',body:JSON.stringify({action,token:tok,...x})});j=await r.json()}catch(e){throw new Error('Cannot reach the server. Check your internet.')}
-  if(r.status===401){localStorage.removeItem('fp_t');location.href='index.html';throw new Error('Please sign in again')}
-  if(!r.ok)throw new Error(j.error||'Server error');
-  return j;
-}
-let fly=0;
-const hideLd=()=>{const l=$('#ld');if(l)l.remove()};
-async function api(a,x){fly++;try{return await api0(a,x)}finally{if(--fly===0)setTimeout(hideLd,60)}}
-setTimeout(hideLd,10000);
-document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(a&&/\.html/.test(a.getAttribute('href')))document.body.classList.add('go')});
-addEventListener('pageshow',()=>document.body.classList.remove('go'));
-const start=async()=>{try{const r=await api('me');setPts(r.user.points);
-  const c=localStorage.getItem('fp_ref');if(c&&!r.user.refBy&&!(r.user.spent>0))api('useRef',{code:c}).catch(()=>{}).finally(()=>localStorage.removeItem('fp_ref'));
-  return r}catch(e){say(e.message);throw e}};
-const box=(t,h)=>{const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="dialog"><b>${esc(t)}</b><div style="margin:.6em 0 1em">${h}</div><button>Close</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON')d.remove()};document.body.append(d)};
-const platBar=()=>`<div class="tabs">${['youtube','instagram'].map(p=>`<button class="${p===plat?'':'o'}" data-sp="${p}">${I(p==='youtube'?'yt':'ig')} ${PL[p]}</button>`).join('')}</div>`;
-const platBind=()=>document.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{localStorage.setItem('plat',b.dataset.sp);location.reload()});
-const logout=()=>{localStorage.removeItem('fp_t');localStorage.removeItem('fp_p');sessionStorage.clear();location.href='index.html'};
-const I=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
-const CFG={apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"};
-async function upgrade(){
-  try{const V='https://www.gstatic.com/firebasejs/10.12.2/',[A,B]=await Promise.all([import(V+'firebase-app.js'),import(V+'firebase-auth.js')]);
-    const c=await B.signInWithPopup(B.getAuth(A.initializeApp(CFG)),new B.GoogleAuthProvider());
-    await api('linkGoogle',{idToken:await c.user.getIdToken()});
-    ok('Your account is now linked to Google. You can sign in with Google any time.','Account upgraded',()=>location.reload());
-  }catch(e){say(e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':e.code==='auth/unauthorized-domain'?'Add folowpay.netlify.app in Firebase authorized domains.':e.message,'Could not upgrade')}
-}
 $('#sp').innerHTML=platBar();platBind();
 const yt=plat==='youtube',RT=(n,v)=>`<div class="row"><span>${n}</span><b>${v}</b></div>`;
 $('#rt').onclick=()=>box('Boost rates',(yt?RT(I('bell')+' Normal subscriber','3 points')+RT(I('star')+' Premium subscriber','4 points')+RT(I('zap')+' Ultra premium subscriber','5 points'):RT(I('follow')+' Normal follower','3 points')+RT(I('star')+' Premium follower','4 points')+RT(I('zap')+' Ultra premium follower','5 points'))
@@ -143,4 +39,30 @@ const row=x=>{
   return `<div class="card"><div class="row" style="border:0;padding:0"><b>${I(IC2[x.type])} ${NMS[x.type]}</b><span class="st ${dn?'ok':''}">${dn?'Completed':'In progress'}</span></div><div style="margin:6px 0">${tag}</div><p class="m">${esc(x.handle)}</p><div class="pb" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><i style="width:${p}%"></i></div><p class="m"><b>${w?dl*x.mins+' of '+x.qty*x.mins+' min':dl+' of '+x.qty}</b> delivered · ${p}%</p>${rf}</div>`};
 const showOrders=o=>{const l=[...o.filter(x=>x.status!=='completed'),...o.filter(x=>x.status==='completed')];$('#ol').innerHTML=l.map(x=>{try{return row(x)}catch(e){return ''}}).join('')||'<p class="m">No orders yet.</p>'};
 const loadOrders=()=>Promise.race([api('orders',{platform:plat}),TO(25000)]).then(j=>showOrders(j.orders)).catch(e=>{$('#ol').innerHTML=`<div class="card"><p class="m">${esc(e.message)}</p><button class="o" id="ro">Retry</button></div>`;$('#ro').onclick=()=>{$('#ol').innerHTML='<p class="m">Loading orders…</p>';loadOrders()}});
-t.innerHTML=(list.length?`<div class="card"><select id="bp">${list.map(p=>`<option>${esc(p.handle)}</option>`).join('')}</select><p class="m">Category</p><div class="grid" id="cg"></div><div id="prw"><p class="m">Priority</p><div class="grid" id="pg"></div><p class="m" id="pn"></p></div><select id="bpk" hidden>${PK.map(m=>`<option v
+t.innerHTML=(list.length?`<div class="card"><select id="bp">${list.map(p=>`<option>${esc(p.handle)}</option>`).join('')}</select><p class="m">Category</p><div class="grid" id="cg"></div><div id="prw"><p class="m">Priority</p><div class="grid" id="pg"></div><p class="m" id="pn"></p></div><select id="bpk" hidden>${PK.map(m=>`<option value="${m}">${m>=1000?m.toLocaleString('en-IN'):m} minutes</option>`).join('')}</select><input id="bq" type="number" min="1" inputmode="numeric"><input id="bw" type="number" min="1" inputmode="numeric" placeholder="Video length in minutes" hidden><input id="bk" placeholder="Video link" hidden><p class="m" id="sum"></p><button id="bg">Create order</button></div>`:'<div class="card"><p class="m">Link a profile first on the Profiles page.</p></div>')+'<h1>My orders</h1><div id="ol"><p class="m">Loading orders…</p></div>';
+loadOrders();setInterval(loadOrders,15000);
+$('#ol').onclick=async e=>{const b=e.target.closest('[data-rf]');if(!b)return;
+  if(await ask('Request a refill?','You can request one refill per order, within 30 days of completion. Our team will review it.')===null)return;
+  b.disabled=true;try{await api('refill',{orderId:b.dataset.rf});ok('Your refill request is in review.','Refill requested',loadOrders)}catch(er){say(er.message,'Could not request refill');b.disabled=false}};
+if(list.length){
+  const upd=()=>{
+    chips($('#cg'),CATS,cat);chips($('#pg'),PRI,pri);
+    const w=cat==='watch',f=['follow','visits'].includes(cat);
+    $('#prw').hidden=!hasPri(cat);$('#pn').textContent=PRI.find(z=>z[0]===pri)[3];
+    $('#bpk').hidden=!w;$('#bw').hidden=!w;$('#bq').hidden=w;$('#bk').hidden=f;
+    $('#bk').placeholder=yt?'Video link (must be on this channel)':'Reel or post link (must be on this account)';
+    $('#bq').placeholder='How many '+NMS[cat].toLowerCase()+(cat==='visits'?' (minimum 100)':'');
+    let sm;
+    if(w){const len=+$('#bw').value||0,tot=+$('#bpk').value;if(len>=1){const m=Math.min(15,Math.floor(len)),n=Math.ceil(tot/m);sm=n>1000?'This video is too short for this package.':`${n} tasks of ${m} min (${n*m} min total) · ${n*m*8} points`}else sm='Enter the video length in minutes.'}
+    else{const q=+$('#bq').value||0,u=COST[cat][hasPri(cat)?PRI.findIndex(z=>z[0]===pri):0];sm=q?`Total: ${q*u} points`:'Enter how many you want.'}
+    $('#sum').textContent=sm;
+  };
+  $('#cg').onclick=e=>{const b=e.target.closest('[data-k]');if(b){cat=b.dataset.k;upd()}};
+  $('#pg').onclick=e=>{const b=e.target.closest('[data-k]');if(b){pri=b.dataset.k;upd()}};
+  ['bq','bw','bpk'].forEach(i=>{$('#'+i).oninput=upd});upd();
+  $('#bg').onclick=async()=>{const b=$('#bg');b.disabled=true;b.textContent='Checking…';
+    try{const x=await api('boost',{platform:plat,handle:$('#bp').value,type:cat,tier:pri,qty:+$('#bq').value,total:+$('#bpk').value,len:+$('#bw').value,link:$('#bk').value});
+      ok(`${x.cost} points used. Your order is in progress.`,'Order placed',()=>location.reload());
+    }catch(e){say(e.message,'Could not create order');b.disabled=false;b.textContent='Create order'}};
+}
+</script></body></html>
