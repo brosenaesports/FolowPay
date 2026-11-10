@@ -168,3 +168,17 @@ button.cat .logo{height:60px;margin-bottom:6px;border-color:#fff}
 .ri .rb{flex:1}.ri button{width:auto;margin:0;padding:10px 16px}
 @media(max-width:420px){.ri{flex-wrap:wrap}.ri button{width:100%}}
 .hb{margin:0}
+
+/* ===== v17: reports, highlighted My orders ===== */
+textarea{font:inherit;width:100%;padding:12px;margin:6px 0;border:2px solid #000;border-radius:10px;background:#fff;color:#000;resize:vertical}
+textarea:focus-visible{outline:3px solid #000;outline-offset:2px}
+.rpt{margin-top:18px;border-top:2px solid #000;padding-top:14px}
+.rp{border:2px solid #000;border-radius:12px;padding:10px 12px;margin:8px 0;background:#f8fafc}
+.hl{background:#fde047!important;color:#000!important;border-color:#000!important;box-shadow:2px 2px 0 #000;position:relative}
+.bdg{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:#dc2626;color:#fff;font-size:.8rem;font-weight:800;border:2px solid #fff}
+.hl .bdg{position:absolute;top:-10px;right:-8px}
+button.mo{display:flex;align-items:center;gap:14px;width:100%;margin:12px 0;padding:14px 16px;background:linear-gradient(135deg,#fde047,#fb923c)!important;color:#000!important;border:2px solid #000;border-radius:18px;box-shadow:4px 4px 0 #000}
+button.mo .big-ic{background:#fff}
+@keyframes ring{0%,100%{box-shadow:2px 2px 0 #000,0 0 0 0 rgba(220,38,38,.5)}50%{box-shadow:2px 2px 0 #000,0 0 0 8px rgba(220,38,38,0)}}
+.hl:has(.bdg){animation:ring 1.8s infinite}
+@media(prefers-reduced-motion:reduce){.hl:has(.bdg){animation:none}}
