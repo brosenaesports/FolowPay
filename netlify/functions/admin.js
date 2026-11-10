@@ -9,6 +9,9 @@ const ist = ms => new Date(ms + 19800000).toISOString().slice(0, 10);
 const W = { ultra: 3, premium: 2, normal: 1 };
 const int = (v, lo, hi) => { const n = Math.floor(+v); return n >= lo && n <= hi ? n : null; };
 const safe = s => String(s || '').replace(/[^\w-]/g, '');
+const money = v => { if (v === '' || v === null || v === undefined) return null; const n = Math.round(+v * 100) / 100; return Number.isFinite(n) && n >= 0 && n <= 1000000 ? n : null; };
+const r2 = n => Math.round(n * 100) / 100;
+const addDay = (node, delta) => delta ? db.ref(node + '/' + ist(Date.now())).transaction(x => r2((x || 0) + delta)) : null;   // per-day totals (IST)
 
 module.exports = async (b, R) => {
   const a = b.action;
@@ -52,10 +55,13 @@ module.exports = async (b, R) => {
   if (a === 'admToSmm') {                                            // move an order to the SMM tab; normal users stop seeing it as a task
     const r = db.ref('orders/' + safe(b.id)), o = (await r.get()).val(), no = String(b.no || '').trim().slice(0, 40);
     if (!o) return R(404, { error: 'Order not found' });
+    const cost = money(b.cost);
     if (!no) return R(400, { error: 'Enter the SMM order number' });
+    if (cost === null) return R(400, { error: 'Enter the amount you spent on this SMM order (₹)' });
     if (o.smm) return R(400, { error: 'This order is already in the SMM tab' });
     if ((o.done || 0) >= o.qty) return R(400, { error: 'This order is already completed' });
-    await r.child('smm').set({ no, status: 'pending', at: Date.now() });
+    await r.child('smm').set({ no, status: 'pending', at: Date.now(), cost });   // cost is never sent to users (the orders API strips smm)
+    await addDay('smmSpend', cost);
     return R(200, { ok: true });
   }
   if (a === 'admSmm') {                                              // not-completed SMM orders; searching by id / SMM number shows all
@@ -69,7 +75,10 @@ module.exports = async (b, R) => {
     const r = db.ref('orders/' + safe(b.id)), o = (await r.get()).val();
     if (!o || !o.smm) return R(404, { error: 'This order is not in the SMM tab' });
     if (!['pending', 'in_progress', 'completed'].includes(b.status)) return R(400, { error: 'Choose a status' });
-    const up = { 'smm/status': b.status, 'smm/no': String(b.no || '').trim().slice(0, 40) };
+    const cost = money(b.cost);
+    if (cost === null) return R(400, { error: 'Enter the amount you spent on this SMM order (₹)' });
+    const up = { 'smm/status': b.status, 'smm/no': String(b.no || '').trim().slice(0, 40), 'smm/cost': cost };
+    await addDay('smmSpend', cost - (o.smm.cost || 0));                      // only the change is added, so edits never double count
     if (b.status === 'completed') { up.done = o.qty; if (!o.completedAt) up.completedAt = Date.now(); }   // completed = 100% delivered
     await r.update(up);
     return R(200, { ok: true });
@@ -144,11 +153,24 @@ module.exports = async (b, R) => {
     return R(200, { users });
   }
   if (a === 'admRevenue') {
-    const d = (await db.ref('revenue').get()).val() || {}, now = ist(Date.now());
-    const y = now.slice(0, 4), m = now.slice(0, 7), wk = ist(Date.now() - 6 * 864e5), months = {};
-    let week = 0, month = 0, year = 0, total = 0;
-    for (const [k, v] of Object.entries(d)) { total += v; if (k.startsWith(y)) year += v; if (k.startsWith(m)) month += v; if (k >= wk) week += v; months[k.slice(0, 7)] = (months[k.slice(0, 7)] || 0) + v; }
-    return R(200, { today: d[now] || 0, week, month, year, total, months: Object.entries(months).sort().reverse().slice(0, 12) });
+    const bf = await db.ref('config/statsBackfill').transaction(c => c ? undefined : Date.now());
+    if (bf.committed) {                                              // one time: build reward spend + points sold from older data
+      const [rd, pay] = await Promise.all([db.ref('redeems').get(), db.ref('userPay').get()]);
+      const rw = {}, pt = {};
+      for (const per of Object.values(rd.val() || {})) for (const x of Object.values(per)) { const k = ist(x.at || 0); (rw[k] = rw[k] || {})[x.type] = r2(((rw[k] || {})[x.type] || 0) + (x.rs || 0)); }
+      for (const per of Object.values(pay.val() || {})) for (const x of Object.values(per)) if (x.status === 'PAID') { const k = ist(x.paid || x.created || 0); pt[k] = (pt[k] || 0) + (x.pts || 0); }
+      await Promise.all([db.ref('rewardSpend').set(rw), db.ref('revenuePts').set(pt)]);
+    }
+    const [rv, pt, sm, rw] = await Promise.all(['revenue', 'revenuePts', 'smmSpend', 'rewardSpend'].map(n => db.ref(n).get().then(x => x.val() || {})));
+    const now = ist(Date.now()), y = now.slice(0, 4), m = now.slice(0, 7), wk = ist(Date.now() - 6 * 864e5);
+    const tot = o => typeof o === 'number' ? o : Object.values(o || {}).reduce((p, c) => p + c, 0);
+    const per = d => { const o = { today: 0, week: 0, month: 0, year: 0, all: 0 }; for (const [k, v0] of Object.entries(d)) { const v = tot(v0); o.all += v; if (k === now) o.today += v; if (k >= wk) o.week += v; if (k.startsWith(m)) o.month += v; if (k.startsWith(y)) o.year += v; } for (const k in o) o[k] = r2(o[k]); return o; };
+    const by = { amazon: 0, gplay: 0, upi: 0 };
+    for (const v of Object.values(rw)) for (const k in by) by[k] = r2(by[k] + ((v || {})[k] || 0));
+    const mo = {}, put = (d, f) => { for (const [k, v] of Object.entries(d)) { const mm = k.slice(0, 7); (mo[mm] = mo[mm] || { got: 0, smm: 0, rew: 0, pts: 0 })[f] += tot(v); } };
+    put(rv, 'got'); put(sm, 'smm'); put(rw, 'rew'); put(pt, 'pts');
+    const months = Object.entries(mo).sort().reverse().slice(0, 12).map(([k, v]) => ({ m: k, got: r2(v.got), smm: r2(v.smm), rew: r2(v.rew), pts: v.pts }));
+    return R(200, { received: per(rv), points: per(pt), smm: per(sm), rewards: per(rw), rewardsBy: by, months });
   }
   return R(400, { error: 'Unknown admin action' });
 };
