@@ -109,3 +109,16 @@ nav a.on{box-shadow:2px 2px 0 #888}
 .kv{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #000}
 .kv span:first-child{display:flex;align-items:center;gap:8px;color:#555}
 .kv b{text-align:right;word-break:break-word}
+
+/* ===== v15: reward store logos ===== */
+.logo{display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #000;border-radius:12px;padding:6px 14px;height:64px}
+.logo svg{height:100%;width:auto;max-width:100%}
+.logo.sm{height:40px;padding:3px 8px;flex:none;border-width:1px}
+.rwh{display:flex;align-items:center;gap:12px;margin-top:18px}
+.rwh .logo{height:48px}.rwh h1{margin:0}
+.rwg{display:grid;grid-template-columns:1fr;gap:12px;margin:12px 0}
+@media(min-width:560px){.rwg{grid-template-columns:1fr 1fr}}
+@media(min-width:900px){.rwg{grid-template-columns:repeat(3,1fr)}}
+.rw{margin:0;text-align:center}
+.rw .logo{margin:0 auto 10px;max-width:220px}
+.rwamt{font-size:2.2rem;font-weight:800;line-height:1.1}
