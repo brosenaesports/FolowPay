@@ -136,7 +136,7 @@ function panel(){
   root.innerHTML=`<div class="tabs" style="flex-wrap:wrap">${Object.entries(N).map(([k,n])=>`<button class="${k===tab?'':'o'}" data-t="${k}" style="flex:1 1 30%">${n}</button>`).join('')}</div><div id="ad"></div><button class="o" id="lo2">${I('out')} Log out</button>`;
   root.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;panel()});
   $('#lo2').onclick=()=>{localStorage.removeItem('fp_a');login()};
-  $('#ad').innerHTML='<div class="ld"><span class="sp"></span><span>Loading…</span></div>';
+  $('#ad').innerHTML='<div class="ld"><span class="sp"></span><span>Loading… the server may take a few seconds to wake up.</span></div>';
   ({tasks,smm,refills,rewards,users,revenue,settings})[tab]().catch(fail);
 }
 const TIER={normal:'Normal',premium:'Premium',ultra:'Ultra premium'},PRIOT=['subscribe','follow','like'];
@@ -154,4 +154,4 @@ async function tasks(){
   const draw=()=>{
     const l=base.filter(x=>(!tf.pr||x.tier===tf.pr)&&(!tf.ty||(tf.ty==='fs'?['subscribe','follow'].includes(x.type):x.type===tf.ty)));
     l.sort((a,b)=>isDone(a)-isDone(b)||(tf.so==='amt'?(b.cost||0)-(a.cost||0):(WT[b.tier]-WT[a.tier]||(b.qty-(b.done||0))-(a.qty-(a.done||0)))));
-    $('#tl').innerHTML=`<p class="m">${l.length} orders</p>`+(l.map(x=>`<div class="card">${head(x)}<p class="m">${x.platform} · ${x.cost} points${x.mins?' · '+x.mins+' min parts':''}</p><p><b>Delivered ${x.done||0}/${x.qty}</b></p><div style="display:flex;gap:8px"><input type="number" min="0" max="${x.qty}" value="${x.done||0}" data-i="${x.id}" style="margin:0;flex:1"><button data-s="${x.id}" style="width:auto;margin:0">Save</button></div>${isDone(x)?'':`<div style="display:flex;gap:8px;margin-top:8px"><input placeholder="SMM order number" data-n="${x.id}" style="margin:0;flex:1"><button class="o" data-m="${x.id}" style="width:auto;margin:0">${I('share')} Shift to SMM</button></div>`}</div>`).join('')
+    $('#tl').innerHTML=`<p class="m">${l.length} orders</p>`+(l.map(x=>`<div class="card">${head(x)}<p class="m">${x.platform} · ${x.cost} points${x.mins?' · '+x.mins+' min parts':''}</p><p><b>Delivered ${x.done||0}/${x.qty}</b></p><div style="display:flex;gap:8px"><input type="number" min="0" max="${x.qty}" value="${x.done||0}" data-i="${x.id}" style="margin:0;flex:1"><button data-s="${x.id}" style="width:auto;margin:0">Save</button></div>${isDone(x)?'':`<div style="display:flex;gap:8px;margin-top:8px"><input placeholder="SMM order number" data-n="${x.id}" style="margin:0;flex:1"><button class="o" data-m="${x.id}" style="width:auto;margin:0">${I('share')} 
