@@ -138,10 +138,47 @@ module.exports = async (b, R) => {
     await Promise.all([db.ref('store/' + id).remove(), db.ref('codes/' + id).remove()]);
     return R(200, { ok: true });
   }
-  if (a === 'admUpiPaid') {
-    const rid = safe(b.id), q = (await db.ref('upiReq/' + rid).get()).val();
+  if (a === 'admUpiPaid' || a === 'admUpiSet') {                     // approve (paid) or cancel (points refunded)
+    const rid = safe(b.id), st = a === 'admUpiPaid' ? 'paid' : b.status, note = String(b.note || '').trim().slice(0, 200);
+    if (!['paid', 'cancelled'].includes(st)) return R(400, { error: 'Choose approve or cancel' });
+    const q = (await db.ref('upiReq/' + rid).get()).val();
     if (!q) return R(404, { error: 'Request not found' });
-    await Promise.all([db.ref('upiReq/' + rid).update({ status: 'paid', paidAt: Date.now() }), db.ref(`redeems/${q.uid}/${rid}`).update({ status: 'paid' })]);
+    const t = await db.ref(`upiReq/${rid}/status`).transaction(x => x === 'pending' ? st : undefined);   // only a pending request can change, and only once
+    if (!t.committed) return R(400, { error: 'This request was already ' + (q.status === 'paid' ? 'approved' : q.status) });
+    const now = Date.now();
+    if (st === 'paid') {
+      await Promise.all([db.ref('upiReq/' + rid).update({ paidAt: now, note }), db.ref(`redeems/${q.uid}/${rid}`).update({ status: 'paid', note })]);
+      return R(200, { ok: true });
+    }
+    const rec = (await db.ref(`redeems/${q.uid}/${rid}`).get()).val() || {};
+    const job = [
+      db.ref(`users/${q.uid}/points`).transaction(x => (x || 0) + (q.pts || 0)),                      // refund the points
+      db.ref('upiReq/' + rid).update({ cancelledAt: now, note }),
+      db.ref(`redeems/${q.uid}/${rid}`).update({ status: 'cancelled', note, refunded: true }),
+      db.ref(`rewardSpend/${ist(q.at || now)}/upi`).transaction(x => r2((x || 0) - (q.rs || 0)))];       // no longer money given
+    if (rec.id && (await db.ref('store/' + safe(rec.id)).get()).exists()) job.push(db.ref(`store/${safe(rec.id)}/stock`).transaction(x => (x || 0) + 1));
+    await Promise.all(job);
+    return R(200, { ok: true, refunded: q.pts || 0 });
+  }
+  if (a === 'admReports') {                                          // every report with the full order it is about
+    const v = (await db.ref('reports').limitToLast(200).get()).val() || {};
+    const rank = { open: 0, processing: 1, solved: 2 };
+    const l = Object.values(v).sort((x, y) => (rank[x.status] - rank[y.status]) || y.at - x.at).slice(0, 100);
+    const os = await Promise.all(l.map(async x => (await db.ref('orders/' + safe(x.oid)).get()).val()));
+    return R(200, { reports: l.map((x, i) => ({ ...x, order: os[i] ? { id: x.oid, ...os[i] } : null })) });
+  }
+  if (a === 'admReportSet') {
+    const id = safe(b.id), r = (await db.ref('reports/' + id).get()).val();
+    if (!r) return R(404, { error: 'Report not found' });
+    if (!['open', 'processing', 'solved'].includes(b.status)) return R(400, { error: 'Choose a status' });
+    const up = { status: b.status, note: String(b.note || '').trim().slice(0, 200), updated: Date.now() };
+    await Promise.all([db.ref('reports/' + id).update(up), db.ref(`userReports/${r.uid}/${r.oid}/${id}`).update(up)]);
+    return R(200, { ok: true });
+  }
+  if (a === 'admReportDel') {
+    const id = safe(b.id), r = (await db.ref('reports/' + id).get()).val();
+    if (!r) return R(404, { error: 'Report not found' });
+    await Promise.all([db.ref('reports/' + id).remove(), db.ref(`userReports/${r.uid}/${r.oid}/${id}`).remove()]);
     return R(200, { ok: true });
   }
   if (a === 'admUsers') {
