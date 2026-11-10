@@ -32,7 +32,7 @@ exports.handler = async e => {
       return R(200, { ok: true });
     }
     const ur = db.ref('users/' + u.uid);
-    const NEED = ['me', 'verifyTask', 'boost', 'refInfo', 'useRef', 'buy', 'redeem', 'refill'];      // other actions skip this read (faster)
+    const NEED = ['me', 'verifyTask', 'boost', 'refInfo', 'useRef', 'buy', 'redeem', 'refill', 'report'];      // other actions skip this read (faster)
     const [us, ps] = NEED.includes(b.action) ? await Promise.all([ur.get(), b.action === 'me' ? db.ref('userProfiles/' + u.uid).get() : null]) : [null, null];
     let me = us ? us.val() : {};
     if (us && !me) {
