@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rewards – FollowPay</title><meta name="description" content="Earn points by subscribing, following and liking. Spend them to grow your own YouTube channel or Instagram profile."><meta name="robots" content="noindex">
+<link rel="icon" href="/logo.png">
+<link rel="stylesheet" href="/core.css?v=18"></head>
+<body data-page="store">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10H3z"/><path d="M9 21v-6h6v6"/></symbol><symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.8c0-1.2 1-1.8 2.5-1.8s2.5.7 2.5 1.8c0 2.4-5 1.2-5 3.8 0 1.2 1 1.9 2.5 1.9s2.5-.6 2.5-1.9"/></symbol><symbol id="i-boost" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol><symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M16 15h2"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol><symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"/><path d="M5 12v9h14v-9M12 8v13M12 8C9 8 8 4.5 10 4s2 4 2 4zM12 8c3 0 4-3.5 2-4s-2 4-2 4z"/></symbol><symbol id="i-yt" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="4"/><path d="M10 9l5 3-5 3z"/></symbol><symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></symbol><symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-8-5.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.5-8 11-8 11z"/></symbol><symbol id="i-follow" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></symbol><symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol><symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol><symbol id="i-share" viewBox="0 0 24 24"><path d="M4 12v8h16v-8M12 15V3M8 7l4-4 4 4"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol><symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"/></symbol><symbol id="i-swap" viewBox="0 0 24 24"><path d="M17 3l4 4-4 4M21 7H8M7 21l-4-4 4-4M3 17h13"/></symbol><symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol></defs></svg><header><button type="button" class="sm hb hl" id="mo"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg> My orders</button><span class="pill" id="pw" hidden><svg class="ic" aria-hidden="true"><use href="#i-coin"/></svg><span id="pts"></span></span></header><nav><a href="home.html"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Home</span></a><a href="earn.html"><svg class="ic" aria-hidden="true"><use href="#i-coin"/></svg><span>Earn</span></a><a href="boost.html"><svg class="ic" aria-hidden="true"><use href="#i-boost"/></svg><span>Boost</span></a><a href="buy.html"><svg class="ic" aria-hidden="true"><use href="#i-wallet"/></svg><span>Buy</span></a><a href="store.html" class=on><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg><span>Rewards</span></a><a href="refer.html"><svg class="ic" aria-hidden="true"><use href="#i-share"/></svg><span>Refer</span></a><a href="profiles.html"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>Profile</span></a></nav>
+<main>
+<div class="ld" id="ld" role="status" aria-live="polite"><span class="sp"></span><span>Loading…</span></div>
+<button type="button" class="mo" id="mo2"><span class="big-ic"><svg class="ic" aria-hidden="true"><use href="#i-gift"/></svg></span><span style="flex:1;text-align:left"><b>My orders</b><br><span class="m" id="mos" style="color:#422006">See your codes and UPI withdrawals</span></span><span class="bdg" id="mob" hidden></span></button><h1>Rewards store</h1><p class="m">Pick a reward type to see what is available.</p><div id="t"></div>
+</main>
+<script type="module">
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
+const ok=(m,t,cb)=>say(m,t||'Done',cb);
+const ask=(t,m,ph)=>new Promise(res=>{const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="dialog"><b>${esc(t)}</b><p>${esc(m)}</p>${ph?`<input placeholder="${esc(ph)}" autocapitalize="off" autocomplete="off">`:''}<button>Confirm</button><button class="o" style="margin-top:8px">Cancel</button></div>`;document.body.append(d);const i=d.querySelector('input'),[c,x]=d.querySelectorAll('button');c.onclick=()=>{d.remove();res(i?i.value:'')};x.onclick=()=>{d.remove();res(null)}});
+const PL={youtube:'YouTube',instagram:'Instagram'};
+const tok=localStorage.getItem('fp_t'),page=document.body.dataset.page,plat=sessionStorage.getItem('plat');
+if((!tok||tok==='undefined')&&page!=='admin'){location.href='index.html';throw 0}
+if(!plat&&!['home','buy','profiles','refer','store','admin'].includes(page)){location.href='home.html';throw 0}
+const setPts=n=>{localStorage.setItem('fp_p',n);$('#pts').textContent=n;$('#pw').hidden=false};
+if(localStorage.getItem('fp_p')){$('#pts').textContent=localStorage.getItem('fp_p');$('#pw').hidden=false}
+async function api0(action,x={}){
+  let r,j;
+  try{r=await fetch('/api',{method:'POST',body:JSON.stringify({action,token:tok,...x})});j=await r.json()}catch(e){throw new Error('Cannot reach the server. Check your internet.')}
+  if(r.status===401){localStorage.removeItem('fp_t');location.href='index.html';throw new Error('Please sign in again')}
+  if(!r.ok)throw new Error(j.error||'Server error');
+  return j;
+}
+let fly=0;
+const hideLd=()=>{const l=$('#ld');if(l)l.remove()};
+async function api(a,x){fly++;try{return await api0(a,x)}finally{if(--fly===0)setTimeout(hideLd,60)}}
+setTimeout(hideLd,10000);
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(a&&/\.html/.test(a.getAttribute('href')))document.body.classList.add('go')});
+addEventListener('pageshow',()=>document.body.classList.remove('go'));
+const start=async()=>{try{const r=await api('me');setPts(r.user.points);
+  const c=localStorage.getItem('fp_ref');if(c&&!r.user.refBy&&!(r.user.spent>0))api('useRef',{code:c}).catch(()=>{}).finally(()=>localStorage.removeItem('fp_ref'));
+  return r}catch(e){say(e.message);throw e}};
+const logout=()=>{localStorage.removeItem('fp_t');localStorage.removeItem('fp_p');sessionStorage.clear();location.href='index.html'};
+const I=n=>`<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const CFG={apiKey:"AIzaSyBxl8tOaw6eJpRbl4Elx5YGvfaWGbry-_g",authDomain:"followpay-a7dfe.firebaseapp.com",projectId:"followpay-a7dfe",appId:"1:361285479601:web:3725e5d93893022b8dc690"};
+async function upgrade(){
+  try{const V='https://www.gstatic.com/firebasejs/10.12.2/',[A,B]=await Promise.all([import(V+'firebase-app.js'),import(V+'firebase-auth.js')]);
+    const c=await B.signInWithPopup(B.getAuth(A.initializeApp(CFG)),new B.GoogleAuthProvider());
+    await api('linkGoogle',{idToken:await c.user.getIdToken()});
+    ok('Your account is now linked to Google. You can sign in with Google any time.','Account upgraded',()=>location.reload());
+  }catch(e){say(e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':e.code==='auth/unauthorized-domain'?'Add folowpay.netlify.app in Firebase authorized domains.':e.message,'Could not upgrade')}
+}
+const LG={
+amazon:'<svg viewBox="0 0 120 48" role="img" aria-label="Amazon"><text x="60" y="27" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="27" fill="#111">amazon</text><path d="M24 34c22 9 52 8 70-3" fill="none" stroke="#f90" stroke-width="3.5" stroke-linecap="round"/><path d="M87 26l8 4-5 7" fill="none" stroke="#f90" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+gplay:'<svg viewBox="0 0 160 48" role="img" aria-label="Google Play"><g transform="translate(2,10)"><path d="M6 3L17 16L6 29z" fill="#00a0ff"/><path d="M6 3L22 12.9L17 16z" fill="#00e676"/><path d="M6 29L22 19.1L17 16z" fill="#ff3d00"/><path d="M22 12.9L27 16L22 19.1L17 16z" fill="#ffc400"/></g><text x="40" y="31" font-family="Arial,Helvetica,sans-serif" font-size="19" font-weight="600" fill="#3c4043">Google Play</text></svg>',
+upi:'<svg viewBox="0 0 96 48" role="img" aria-label="UPI"><text x="4" y="34" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-style="italic" font-size="32" fill="#000">UPI</text><path d="M70 10l10 14-10 14z" fill="#f97316"/><path d="M80 10l10 14-10 14z" fill="#16a34a"/></svg>'};
+const [r,j]=await Promise.all([start(),api('storeList')]),t=$('#t'),g=r.user.guest;
+const CAT={amazon:['Amazon Gift Card','Shop anything on Amazon'],gplay:['Google Play Gift Card','Apps, games, movies and more'],upi:['UPI Cash','Money straight to your bank']};
+const sheet=(html,bind)=>{const old=$('#osh');if(old)old.remove();const d=document.createElement('div');d.className='sheet';d.id='osh';d.innerHTML=`<div role="dialog">${html}</div>`;
+  d.onclick=e=>{if(e.target===d||e.target.closest('[data-x]'))d.remove()};document.body.append(d);bind&&bind(d);return d};
+const UST=x=>x.status==='paid'?'<span class="st ok">Approved</span>':x.status==='cancelled'?'<span class="st" style="border-color:#991b1b;color:#991b1b">Cancelled</span>':'<span class="st">Pending</span>';
+const closeBtn=`<button class="o sm" data-x aria-label="Close">${I('out')} Close</button>`;
+t.innerHTML=(g?`<div class="card"><b>${I('lock')} Google account needed</b><p class="m">Rewards are for Google accounts. Upgrade your guest account in one tap. Your points stay safe.</p><button id="ug">${I('up')} Upgrade to Google</button></div>`:'')
+ +`<div class="cats">`+['amazon','gplay','upi'].map(ty=>{const l=j.items.filter(x=>x.type===ty),av=l.some(x=>x.stock>0),min=l.length?Math.min(...l.map(x=>x.rs)):0;
+  return `<button type="button" class="cat ${ty}" data-c="${ty}"><span class="logo">${LG[ty]}</span><b class="ct">${CAT[ty][0]}</b><span class="cs">${CAT[ty][1]}</span><span class="cav ${av?'':'n'}">${av?I('shield')+' Available':'Out of stock'}</span><span class="cm">${l.length?l.length+' reward'+(l.length>1?'s':'')+' · from ₹'+min:'Coming soon'}</span><span class="cg">Tap to see prices ${I('up')}</span></button>`}).join('')+`</div><div class="nbox"></div>`;
+if($('#ug'))$('#ug').onclick=upgrade;
+/* ---- restock alerts (LumaPush): loaded only when the user chooses to turn them on ---- */
+const LPU='https://lumapush.com/sdk/pp_f98e047302a49a9a891a73b9cf080172/sdk.js?domain=follow-pay.netlify.app';
+const NS=()=>!('serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window)?'unsupported':Notification.permission==='denied'?'denied':(Notification.permission==='granted'&&localStorage.getItem('lp_subscribed_global'))?'on':'off';
+const nbox=()=>{const s=NS(),ic=`<span class="big-ic">${I('bell')}</span>`;
+  if(s==='on')return `<div class="card nt on">${ic}<div><b>Restock alerts are on</b><p class="m" style="margin:0">We will notify you on this device when rewards are back in stock.</p></div></div>`;
+  if(s==='denied')return `<div class="card nt">${ic}<div><b>Notifications are blocked</b><p class="m" style="margin:0">To get restock alerts, allow notifications for this site in your browser settings, then reload.</p></div></div>`;
+  if(s==='unsupported')return `<div class="card nt">${ic}<div><b>Alerts not supported here</b><p class="m" style="margin:0">This browser cannot show notifications. On iPhone, add this site to your Home Screen first, or try Chrome on Android.</p></div></div>`;
+  return `<div class="card nt">${ic}<div style="flex:1"><b>Get restock alerts</b><p class="m" style="margin:0 0 6px">Be the first to know when rewards are back in stock.</p><button data-notify>${I('bell')} Notify me</button></div></div>`};
+const refreshN=()=>document.querySelectorAll('.nbox').forEach(e=>e.innerHTML=nbox());
+const loadLP=()=>new Promise((res,rej)=>{if(window.LumaPush&&window.LumaPush.subscribe)return res();const old=document.getElementById('lpsdk');if(old)return res();
+  const sc=document.createElement('script');sc.id='lpsdk';sc.src=LPU;sc.defer=true;sc.setAttribute('data-no-minify','1');sc.setAttribute('data-no-optimize','1');
+  sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not reach the notification service. Check your internet and try again.'));document.head.append(sc)});
+const subscribeN=async btn=>{
+  if(btn)btn.disabled=true;
+  try{
+    const perm=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;   // asked right on the tap
+    if(perm!=='granted'){say(perm==='denied'?'Notifications were blocked. Allow them in your browser settings to get restock alerts.':'No problem. You can turn alerts on any time.','Alerts not turned on');return}
+    await loadLP();
+    const done=await new Promise(res=>{const yes=()=>!!localStorage.getItem('lp_subscribed_global');if(yes())return res(true);
+      const t=setTimeout(()=>res(yes()),9000);addEventListener('lumapush:subscribed',()=>{clearTimeout(t);res(true)},{once:true});
+      setTimeout(()=>{try{window.LumaPush&&window.LumaPush.subscribe&&window.LumaPush.subscribe()}catch{}},1500)});
+    done?ok('Done! We will send you a notification when rewards are restocked.','Restock alerts on'):say('Setup did not finish. Please tap Notify me again.','Not turned on');
+  }catch(e){say(e.message,'Could not turn on alerts')}
+  finally{refreshN()}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-notify]');if(b)subscribeN(b)});
+if(NS()==='off'&&Notification.permission==='granted')loadLP().then(()=>addEventListener('lumapush:subscribed',refreshN,{once:true})).catch(()=>{});   // allowed earlier but not linked yet
+
+
+const redeem=async(x,btn)=>{let upi;
+  if(x.type==='upi'){upi=await ask('Get ₹'+x.rs+' by UPI','Enter your UPI ID. This costs '+x.pts+' points.','name@bank');if(upi===null)return;upi=upi.trim();if(!upi)return say('Enter your UPI ID to receive the money, like name@bank.','UPI ID needed')}
+  else if(await ask('Redeem '+x.name,'₹'+x.rs+' for '+x.pts+' points?')===null)return;
+  btn.disabled=true;
+  try{const rr=await api('redeem',{id:x.id,upi});
+    ok(x.type==='upi'?'Request sent. ₹'+x.rs+' will be paid to '+rr.rec.upi+' soon.':'Your code: '+rr.rec.code+'. You can see it again under My orders.','Reward redeemed',()=>location.reload())}
+  catch(e){say(e.message,'Could not redeem');btn.disabled=false}};
+t.querySelectorAll('[data-c]').forEach(c=>c.onclick=()=>{
+  const ty=c.dataset.c,l=j.items.filter(x=>x.type===ty).sort((a,b)=>a.rs-b.rs);
+  sheet(`<div class="sh"><span class="logo" style="height:56px">${LG[ty]}</span><h2>${CAT[ty][0]}</h2>${closeBtn}</div><p class="m">You have <b>${r.user.points||0} points</b>.${g?' Upgrade to Google to redeem.':''}</p>`
+    +(l.map(x=>{const need=r.user.points<x.pts,can=x.stock>0&&!g&&!need;
+      return `<div class="ri"><span class="amt">₹${x.rs}</span><div class="rb"><b>${x.pts} points</b><br><span class="cav ${x.stock>0?'':'n'}" style="margin-top:4px">${x.stock>0?'Available · '+x.stock+' left':'Out of stock'}</span>${x.stock>0&&need&&!g?`<p class="m" style="margin:.3em 0 0">You need ${x.pts-r.user.points} more points</p>`:''}</div><button data-r="${x.id}"${can?'':' disabled'}>${I('gift')} Redeem</button></div>`}).join('')||'<div class="card"><p class="m">No rewards in this category yet. Check back soon.</p></div>')+'<div class="nbox"></div>',
+    d=>{refreshN();d.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>redeem(j.items.find(i=>i.id===b.dataset.r),b));})});
+
+const openOrders=async()=>{
+  const d=sheet(`<div class="sh"><span class="big-ic">${I('gift')}</span><h2>My orders</h2>${closeBtn}</div><div id="hs"><div class="ld"><span class="sp"></span><span>Loading…</span></div></div>`);
+  try{const {list}=await api('myRedeems');
+    d.querySelector('#hs').innerHTML=list.map(x=>`<div class="ri"><span class="logo sm">${LG[x.type]||''}</span><div class="rb"><b>${esc(x.name)} · ₹${x.rs}</b><br><span class="m">${new Date(x.at).toLocaleString()}</span>${x.code?`<br><b style="word-break:break-all">${esc(x.code)}</b>`:`<br><span class="m">${esc(x.upi||'')}</span>${x.status==='cancelled'?`<br><span class="m" style="color:#991b1b">Cancelled · ${x.pts} points refunded${x.note?' · '+esc(x.note):''}</span>`:x.note?`<br><span class="m">${esc(x.note)}</span>`:''}`}</div>${x.code?`<button class="o" data-cp="${esc(x.code)}">${I('copy')} Copy</button>`:UST(x)}</div>`).join('')||'<p class="m">Nothing redeemed yet. Pick a reward to get started.</p>';
+    d.querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>navigator.clipboard.writeText(b.dataset.cp).then(()=>ok('Code copied.','Copied')).catch(()=>say('Press and hold the code to copy it.')))
+  }catch(e){d.querySelector('#hs').innerHTML='<p class="m">'+esc(e.message)+'</p>'}};
+refreshN();$('#mo').onclick=openOrders;$('#mo2').onclick=openOrders;
+api('myRedeems').then(({list})=>{const pn=list.filter(x=>x.status==='pending').length;
+  if(list.length)$('#mos').textContent=list.length+' order'+(list.length>1?'s':'')+(pn?' · '+pn+' waiting for approval':' · all done');
+  if(pn){$('#mob').hidden=false;$('#mob').textContent=pn;const h=document.createElement('span');h.className='bdg';h.textContent=pn;$('#mo').append(h)}}).catch(()=>{});
+</script></body></html>
