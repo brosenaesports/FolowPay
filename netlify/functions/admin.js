@@ -45,11 +45,45 @@ module.exports = async (b, R) => {
     await db.ref('config/adminEmails/' + safe(b.key)).remove();
     return R(200, { ok: true });
   }
-  if (a === 'admTasks') {                                            // highest priority first, then biggest remaining amount
-    const o = (await db.ref('orders').limitToLast(300).get()).val() || {};
-    const tasks = Object.entries(o).map(([id, x]) => ({ id, ...x }))
-      .sort((x, y) => W[y.tier] - W[x.tier] || (y.qty - (y.done || 0)) - (x.qty - (x.done || 0)));
-    return R(200, { tasks });
+  if (a === 'admTasks') {                                            // the page filters/sorts these (priority, amount, type)
+    const o = (await db.ref('orders').limitToLast(200).get()).val() || {};
+    return R(200, { tasks: Object.entries(o).map(([id, x]) => ({ id, ...x })) });
+  }
+  if (a === 'admToSmm') {                                            // move an order to the SMM tab; normal users stop seeing it as a task
+    const r = db.ref('orders/' + safe(b.id)), o = (await r.get()).val(), no = String(b.no || '').trim().slice(0, 40);
+    if (!o) return R(404, { error: 'Order not found' });
+    if (!no) return R(400, { error: 'Enter the SMM order number' });
+    if (o.smm) return R(400, { error: 'This order is already in the SMM tab' });
+    if ((o.done || 0) >= o.qty) return R(400, { error: 'This order is already completed' });
+    await r.child('smm').set({ no, status: 'pending', at: Date.now() });
+    return R(200, { ok: true });
+  }
+  if (a === 'admSmm') {                                              // not-completed SMM orders; searching by id / SMM number shows all
+    const o = (await db.ref('orders').limitToLast(400).get()).val() || {}, q = String(b.q || '').trim().toLowerCase();
+    let l = Object.entries(o).filter(([, x]) => x.smm).map(([id, x]) => ({ id, ...x }));
+    l = q ? l.filter(x => x.id.toLowerCase().includes(q) || String(x.smm.no || '').toLowerCase().includes(q)) : l.filter(x => x.smm.status !== 'completed');
+    if (b.type) l = l.filter(x => x.type === b.type);
+    return R(200, { orders: l.sort((x, y) => (y.cost || 0) - (x.cost || 0)).slice(0, 100) });
+  }
+  if (a === 'admSmmEdit') {
+    const r = db.ref('orders/' + safe(b.id)), o = (await r.get()).val();
+    if (!o || !o.smm) return R(404, { error: 'This order is not in the SMM tab' });
+    if (!['pending', 'in_progress', 'completed'].includes(b.status)) return R(400, { error: 'Choose a status' });
+    const up = { 'smm/status': b.status, 'smm/no': String(b.no || '').trim().slice(0, 40) };
+    if (b.status === 'completed') { up.done = o.qty; if (!o.completedAt) up.completedAt = Date.now(); }   // completed = 100% delivered
+    await r.update(up);
+    return R(200, { ok: true });
+  }
+  if (a === 'admRefills') {
+    const v = (await db.ref('refills').limitToLast(100).get()).val() || {};
+    return R(200, { refills: Object.values(v).sort((x, y) => (x.status === 'review' ? 0 : 1) - (y.status === 'review' ? 0 : 1) || y.at - x.at) });
+  }
+  if (a === 'admRefillSet') {
+    const id = safe(b.id), r = (await db.ref('refills/' + id).get()).val();
+    if (!r) return R(404, { error: 'Refill request not found' });
+    if (!['done', 'rejected'].includes(b.status)) return R(400, { error: 'Choose done or rejected' });
+    await Promise.all([db.ref('refills/' + id).update({ status: b.status, note: String(b.note || '').slice(0, 200), resolvedAt: Date.now() }), db.ref(`orders/${id}/refill/status`).set(b.status)]);
+    return R(200, { ok: true });
   }
   if (a === 'admSetDone') {
     const r = db.ref('orders/' + safe(b.id)), o = (await r.get()).val();
@@ -57,6 +91,7 @@ module.exports = async (b, R) => {
     const n = int(b.done, 0, o.qty);
     if (n === null) return R(400, { error: `Enter a number from 0 to ${o.qty}` });
     await r.child('done').set(n);
+    if (n >= o.qty && !o.completedAt) await r.child('completedAt').set(Date.now());   // 100% delivered -> completed
     return R(200, { ok: true });
   }
   if (a === 'admItems') {
