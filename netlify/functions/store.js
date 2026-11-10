@@ -10,7 +10,7 @@ module.exports = async (b, u, me, ur, R) => {
       .sort((x, y) => x.rs - y.rs) });
   }
   if (a === 'myRedeems') {
-    const v = (await db.ref('redeems/' + u.uid).limitToLast(20).get()).val() || {};
+    const v = (await db.ref('redeems/' + u.uid).limitToLast(50).get()).val() || {};
     return R(200, { list: Object.values(v).sort((x, y) => y.at - x.at) });
   }
   if (me.guest) return R(403, { error: 'Upgrade to a Google account to redeem rewards' });
