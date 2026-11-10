@@ -19,7 +19,7 @@ let oc = { t: 0, v: null };
 
 module.exports = async (b, u, me, ur, R) => {
   const a = b.action, p = b.platform;
-  if (!['tasks', 'startTask', 'skipTask', 'verifyTask', 'boost', 'orders', 'refill'].includes(a)) return null;
+  if (!['tasks', 'startTask', 'skipTask', 'verifyTask', 'boost', 'orders', 'refill', 'report'].includes(a)) return null;
   const ids = async fresh => {                                      // warm servers reuse the order list for 3 seconds
     if (!fresh && oc.v && Date.now() - oc.t < 3000) return oc.v;
     const v = (await db.ref('orders').limitToLast(200).get()).val() || {};
@@ -27,14 +27,30 @@ module.exports = async (b, u, me, ur, R) => {
   };
 
   if (a === 'orders') {
-    const o = await ids(true), now = Date.now();
+    const [o, rp] = await Promise.all([ids(true), db.ref('userReports/' + u.uid).get()]), now = Date.now(), reps = rp.val() || {};
     const orders = Object.entries(o).filter(([, x]) => x.uid === u.uid && x.platform === p).map(([id, x]) => {
       const { smm, uid, ...pub } = x, completed = smm ? smm.status === 'completed' : (x.done || 0) >= x.qty;
       const until = (x.completedAt || x.created) + REFILL_DAYS * 864e5;
-      return { id, ...pub, status: completed ? 'completed' : 'progress', refillUntil: until,
+      const reports = Object.values(reps[id] || {}).sort((m, n) => m.at - n.at);
+      return { id, ...pub, reports, status: completed ? 'completed' : 'progress', refillUntil: until,
         canRefill: !x.refill && completed && PRIO.includes(x.type) && x.tier !== 'normal' && now < until };
     }).reverse();
     return R(200, { orders });
+  }
+  if (a === 'report') {                                             // user comment about one of their orders; admin sees it in the Reports tab
+    const id = safe(b.orderId), c = String(b.comment || '').trim();
+    if (c.length < 5) return R(400, { error: 'Write at least 5 characters about the problem' });
+    if (c.length > 500) return R(400, { error: 'Keep the report under 500 characters' });
+    const o = (await db.ref('orders/' + id).get()).val();
+    if (!o || o.uid !== u.uid) return R(404, { error: 'Order not found' });
+    const mine = (await db.ref(`userReports/${u.uid}/${id}`).get()).val() || {};
+    if (Object.keys(mine).length >= 3) return R(400, { error: 'You already sent 3 reports for this order' });
+    if (Object.values(mine).some(x => x.status !== 'solved' && Date.now() - x.at < 36e5)) return R(400, { error: 'Please wait an hour before sending another report for this order' });
+    const rid = db.ref('reports').push().key, at = Date.now();
+    await Promise.all([
+      db.ref('reports/' + rid).set({ id: rid, oid: id, uid: u.uid, email: me.email || null, comment: c, status: 'open', note: '', at }),
+      db.ref(`userReports/${u.uid}/${id}/${rid}`).set({ id: rid, comment: c, status: 'open', note: '', at })]);
+    return R(200, { ok: true });
   }
   if (a === 'refill') {                                             // one refill per order, Premium / Ultra premium, within 30 days of completion
     const id = safe(b.orderId), r = db.ref('orders/' + id), o = (await r.get()).val();
