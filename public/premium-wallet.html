@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><meta name="theme-color" content="#0b1020">
+<title>Premium Wallet – FollowPay</title>
+<link rel="stylesheet" href="/premium.css?v=1">
+</head><body>
+<div id="shell"></div>
+<script src="/pm.js?v=1"></script>
+<script type="module">
+shell('wallet');
+const app=$('#app');
+let iv=null,busy=false,MIN=10,MAX=5000,amt=0;
+const UPI='<svg width="86" height="36" viewBox="0 0 96 40" role="img" aria-label="UPI"><text x="4" y="30" font-family="system-ui,Arial,sans-serif" font-weight="800" font-style="italic" font-size="30" fill="#000">UPI</text><path d="M70 8l10 12-10 12z" fill="#f97316"/><path d="M80 8l10 12-10 12z" fill="#16a34a"/></svg>';
+app.innerHTML=`<section class="pmhero"><p style="color:#cfd3ee">Your Premium wallet</p><div class="pmbal"><div><b id="wb" style="font-size:2.8rem">₹0.00</b><small>Separate from your FollowPay points</small></div></div></section>
+<div id="gw"></div>
+<div class="card"><h2>${I('plus')} Add money</h2><p class="m">Pay with any UPI app. The money reaches your wallet within seconds.</p>
+<div class="amts" id="am">${[50,100,200,500,1000,2000].map(n=>`<button type="button" data-a="${n}">₹${n}</button>`).join('')}</div>
+<label for="ca">Or enter an amount</label><input id="ca" type="number" inputmode="numeric" placeholder="Amount in ₹" min="10">
+<button id="pay" class="wide">${I('wallet')} Add money by UPI</button><p class="m" id="lim" style="text-align:center;margin:.5em 0 0"></p></div>
+<div class="card"><h2>Payments</h2><div id="py"><div class="ldg"><span class="sp"></span></div></div></div>
+<div class="card"><h2>Wallet history</h2><div id="lg"><div class="ldg"><span class="sp"></span></div></div></div>`;
+const closeFull=()=>{clearInterval(iv);iv=null;const f=$('#pf');if(f)f.remove()};
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const TYI={topup:['Money added','pl','+'],order:['Order','mi',''],refund:['Refund','pl','+']};
+async function load(){
+  try{const w=await api('pmWallet');setBal(w.bal);$('#wb').textContent=INR(w.bal);MIN=w.min;MAX=w.max;$('#lim').textContent=`Minimum ₹${MIN}, maximum ₹${MAX} per payment`;
+    $('#py').innerHTML=w.pays.map(x=>`<div class="led"><span>${INR(x.rs)}<br><span class="m">${dt(x.created)}</span></span>${x.status==='PAID'?'<b style="color:var(--green)">✓ Paid</b>':`<button class="sm" data-c="${esc(x.id)}">Check payment</button>`}</div>`).join('')||'<p class="m">No payments yet.</p>';
+    $('#lg').innerHTML=w.ledger.map(x=>{const t=TYI[x.type]||['Entry','mi',''];return `<div class="led"><span><b>${t[0]}</b>${x.note?' · '+esc(x.note):''}<br><span class="m">${dt(x.at)} · balance ${INR(x.bal)}</span></span><b class="${x.amt>=0?'pl':'mi'}">${x.amt>=0?'+':'−'}${INR(Math.abs(x.amt))}</b></div>`}).join('')||'<p class="m">Nothing here yet. Add money to get started.</p>';
+    $$('#py [data-c]').forEach(b=>b.onclick=async()=>{const x=w.pays.find(p=>p.id===b.dataset.c);spin(b,'Checking…');const ok=await check(x.id);unspin(b);if(ok!==true&&x.exp>Date.now())show(x)});
+  }catch(e){$('#py').innerHTML=$('#lg').innerHTML=`<p class="m">${esc(e.message)}</p>`}
+}
+async function check(id){
+  try{const r=await api('pmTopupCheck',{orderId:id});
+    if(r.status==='PAID'){closeFull();if(r.bal!=null){setBal(r.bal);$('#wb').textContent=INR(r.bal)}
+      if(r.added)dlg('Payment successful',`<p style="text-align:center"><span style="font-size:3rem;color:var(--green)">✓</span><br><b>${INR(r.added)}</b> added to your wallet</p>`);load();return true}
+    if(r.status==='EXPIRED'){closeFull();load();say('Payment time ended. If you already paid, tap Check payment under Payments.','Time is up')}
+  }catch(e){}
+  return false;
+}
+function show(o){
+  closeFull();const f=document.createElement('div');f.className='pmfull';f.id='pf';
+  const intent=o.intent&&/^(upi|tez|phonepe|paytmmp|gpay|intent):/i.test(o.intent)?o.intent:'';
+  f.innerHTML=`<div class="fin">${UPI}<h1>Pay ₹${esc(o.amount)}</h1><p class="m">Scan with any UPI app and pay the exact amount.</p><img class="qr" src="${esc(o.qr)}" alt="UPI QR code">${intent?`<a class="pmbtn wide" href="${esc(intent)}">Open UPI app</a>`:''}<p class="m">Payment ${esc(o.id)}</p><p><b id="tm"></b></p><p class="m">Waiting for payment… this screen updates by itself.</p><button id="cn" class="ghost wide">Cancel</button></div>`;
+  document.body.append(f);
+  iv=setInterval(()=>{const left=Math.max(0,Math.round((o.exp-Date.now())/1000));$('#tm').textContent=fmt(left);
+    if(left<=0){closeFull();load();say('Payment time ended. If you already paid, tap Check payment under Payments.','Time is up');return}
+    if(!busy){busy=true;check(o.id).finally(()=>busy=false)}},3000);
+  $('#tm').textContent=fmt(Math.max(0,Math.round((o.exp-Date.now())/1000)));
+  $('#cn').onclick=async()=>{const b=$('#cn');b.disabled=true;b.textContent='Cancelling…';clearInterval(iv);
+    try{const r=await api('pmTopupCancel',{orderId:o.id});if(r.status==='PAID'&&r.bal!=null){setBal(r.bal);$('#wb').textContent=INR(r.bal)}}catch(e){}
+    closeFull();load()};
+}
+$('#am').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;amt=+b.dataset.a;$('#ca').value=amt;$$('#am button').forEach(x=>x.classList.toggle('on',x===b))};
+$('#ca').oninput=e=>{amt=+e.target.value;$$('#am button').forEach(x=>x.classList.toggle('on',+x.dataset.a===amt))};
+$('#pay').onclick=async()=>{
+  const n=Math.floor(+$('#ca').value||0);
+  if(!(n>=MIN&&n<=MAX))return say(`Enter an amount between ₹${MIN} and ₹${MAX}.`,'Check amount');
+  const b=$('#pay');spin(b,'Creating payment…');
+  try{show(await api('pmTopup',{amount:n}));load()}catch(e){say(e.message,'Could not start payment')}unspin(b)};
+api('me').then(r=>{if(r.user&&r.user.guest)$('#gw').innerHTML=guestNote()}).catch(()=>{});
+await load();
+</script></body></html>
