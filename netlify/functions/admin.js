@@ -1,4 +1,3 @@
-
 const { db, crypto, sign, auth } = require('./lib');
 const emails = async () => {                                         // admin Gmail addresses: Firebase (config/adminEmails) + optional Netlify variable
   const fromDb = Object.values((await db.ref('config/adminEmails').get()).val() || {});
@@ -210,5 +209,6 @@ module.exports = async (b, R) => {
     const months = Object.entries(mo).sort().reverse().slice(0, 12).map(([k, v]) => ({ m: k, got: r2(v.got), smm: r2(v.smm), rew: r2(v.rew), pts: v.pts }));
     return R(200, { received: per(rv), points: per(pt), smm: per(sm), rewards: per(rw), rewardsBy: by, months });
   }
+  if (a.startsWith('admPm')) return require('./premium').admin(b, R);      // Premium booster (wallet / panel orders / tickets)
   return R(400, { error: 'Unknown admin action' });
 };
