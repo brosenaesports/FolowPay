@@ -1,3 +1,4 @@
+
 const { db } = require('./lib');
 const V = require('./verify');
 const Ref = require('./refer');
@@ -44,8 +45,7 @@ module.exports = async (b, u, me, ur, R) => {
     const o = (await db.ref('orders/' + id).get()).val();
     if (!o || o.uid !== u.uid) return R(404, { error: 'Order not found' });
     const mine = (await db.ref(`userReports/${u.uid}/${id}`).get()).val() || {};
-    if (Object.keys(mine).length >= 3) return R(400, { error: 'You already sent 3 reports for this order' });
-    if (Object.values(mine).some(x => x.status !== 'solved' && Date.now() - x.at < 36e5)) return R(400, { error: 'Please wait an hour before sending another report for this order' });
+    if (Object.keys(mine).length >= 1) return R(400, { error: 'You already sent a report for this order. Check its status in the order details.' });
     const rid = db.ref('reports').push().key, at = Date.now();
     await Promise.all([
       db.ref('reports/' + rid).set({ id: rid, oid: id, uid: u.uid, email: me.email || null, comment: c, status: 'open', note: '', at }),
