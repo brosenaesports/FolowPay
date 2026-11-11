@@ -1,12 +1,11 @@
-
 const { db } = require('./lib');
 const V = require('./verify');
 const Ref = require('./refer');
 const MIN = { subscribe: 15, follow: 15, like: 8, views: 10, comment: 20 };           // seconds before Verify is believable
-const REWARD = { subscribe: 2, follow: 2, like: 1, views: 1, comment: 1 };
+const REWARD = { subscribe: 1, follow: 2, like: 1, views: 1, comment: 1 };
 const PM = 6, PC = 8;                                                                  // watch time: earner 6 / booster 8 points per minute
 const P3 = { normal: 3, premium: 4, ultra: 5 };
-const COST = { subscribe: P3, follow: P3, like: { normal: 2, premium: 3, ultra: 4 }, views: { normal: 1 }, comment: { normal: 1 }, visits: { normal: 1 }, watch: { normal: PC } };
+const COST = { subscribe: { normal: 2, premium: 12, ultra: 12 }, follow: P3, like: { normal: 2, premium: 3, ultra: 4 }, views: { normal: 1 }, comment: { normal: 1 }, visits: { normal: 1 }, watch: { normal: PC } };
 const W = { ultra: 3, premium: 2, normal: 1 };
 const TYPES = { youtube: ['subscribe', 'like', 'views', 'comment', 'watch'], instagram: ['follow', 'like', 'views', 'comment', 'visits'] };
 const PRIO = ['subscribe', 'follow', 'like'];                                          // only these have priority levels + 30-day refill
