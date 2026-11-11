@@ -32,7 +32,7 @@ exports.handler = async e => {
       return R(200, { ok: true });
     }
     const ur = db.ref('users/' + u.uid);
-    const NEED = ['me', 'verifyTask', 'boost', 'refInfo', 'useRef', 'buy', 'redeem', 'refill', 'report'];      // other actions skip this read (faster)
+    const NEED = ['me', 'verifyTask', 'boost', 'refInfo', 'useRef', 'buy', 'redeem', 'refill', 'report', 'pmOrder', 'pmTicket'];      // other actions skip this read (faster)
     const [us, ps] = NEED.includes(b.action) ? await Promise.all([ur.get(), b.action === 'me' ? db.ref('userProfiles/' + u.uid).get() : null]) : [null, null];
     let me = us ? us.val() : {};
     if (us && !me) {
@@ -40,7 +40,7 @@ exports.handler = async e => {
       await ur.set(me);
     }
     if (b.action === 'me') return R(200, { user: me, profiles: ps.val() || {} });
-    const g = (await require('./game')(b, u, me, ur, R)) || (await require('./pay')(b, u, me, ur, R)) || (await require('./refer')(b, u, me, ur, R)) || (await require('./store')(b, u, me, ur, R));
+    const g = (await require('./game')(b, u, me, ur, R)) || (await require('./pay')(b, u, me, ur, R)) || (await require('./refer')(b, u, me, ur, R)) || (await require('./store')(b, u, me, ur, R)) || (await require('./premium')(b, u, me, ur, R));
     if (g) return g;
     const p = b.platform; let h = String(b.handle || '').trim();
     if (!RE[p]) return R(400, { error: 'Unknown platform' });
