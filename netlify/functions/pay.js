@@ -1,7 +1,6 @@
-
 const { db } = require('./lib');
 const BASE = 'https://gateway.anujbots.in/';
-const PACKS = [[1, 2], [2, 6], [10, 35], [20, 74], [50, 180], [80, 80], [135, 500], [300, 1000]];   // [rupees, points]
+const PACKS = [[1, 2], [2, 6], [10, 35], [20, 74], [50, 180], [80, 280], [135, 500], [300, 1000]];   // [rupees, points]
 const call = async path => (await fetch(BASE + path)).json();
 
 module.exports = async (b, u, me, ur, R) => {
@@ -15,7 +14,6 @@ module.exports = async (b, u, me, ur, R) => {
     return R(200, { txs: Object.values(q).sort((x, y) => y.created - x.created) });
   }
   if (a === 'buy') {
-    if (me.guest) return R(403, { error: 'Upgrade to a Google account to buy points' });
     const pk = PACKS[b.pack];
     if (!pk) return R(400, { error: 'Choose a pack' });
     const now = Date.now(), q = (await ref.limitToLast(20).get()).val() || {};
