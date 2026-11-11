@@ -1,3 +1,4 @@
+
 const { db, crypto, sign, auth } = require('./lib');
 const emails = async () => {                                         // admin Gmail addresses: Firebase (config/adminEmails) + optional Netlify variable
   const fromDb = Object.values((await db.ref('config/adminEmails').get()).val() || {});
@@ -104,7 +105,7 @@ module.exports = async (b, R) => {
     return R(200, { ok: true });
   }
   if (a === 'admItems') {
-    const [it, up] = await Promise.all([db.ref('store').get(), db.ref('upiReq').limitToLast(50).get()]);
+    const [it, up] = await Promise.all([db.ref('store').get(), db.ref('upiReq').limitToLast(300).get()]);
     return R(200, { items: Object.entries(it.val() || {}).map(([id, x]) => ({ id, ...x })), upi: Object.values(up.val() || {}).sort((x, y) => y.at - x.at) });
   }
   if (a === 'admAddItem') {
