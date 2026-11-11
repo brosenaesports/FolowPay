@@ -36,5 +36,5 @@ async function upgrade(){
     const c=await B.signInWithPopup(B.getAuth(A.initializeApp(CFG)),new B.GoogleAuthProvider());
     await api('linkGoogle',{idToken:await c.user.getIdToken()});
     ok('Your account is now linked to Google. You can sign in with Google any time.','Account upgraded',()=>location.reload());
-  }catch(e){say(e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':e.code==='auth/unauthorized-domain'?'Add folowpay.netlify.app in Firebase authorized domains.':e.message,'Could not upgrade')}
-}
+  }catch(e){say(e.code==='auth/popup-closed-by-user'?'Sign-in window was closed.':e.code==='auth/unauthorized-domain'?'Add follow-pay.netlify.app in Firebase authorized domains.':e.message,'Could not upgrade')}
+                   }
