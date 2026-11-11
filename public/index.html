@@ -74,8 +74,9 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 const say=(m,t,cb)=>{if(!m)return;const d=document.createElement('div');d.className='ov';d.innerHTML=`<div class="pop" role="alertdialog"><b>${esc(t||'Notice')}</b><p>${esc(m)}</p><button>OK</button></div>`;d.onclick=e=>{if(e.target===d||e.target.tagName==='BUTTON'){d.remove();cb&&cb()}};document.body.append(d)};
 const ok=(m,t,cb)=>say(m,t||'Done',cb);
 {const q=new URLSearchParams(location.search).get('ref');if(q)localStorage.setItem('fp_ref',q.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10))}
-if(localStorage.getItem('fp_t')&&localStorage.getItem('fp_t')!=='undefined')location.href='home.html';
-const go=t=>{localStorage.setItem('fp_t',t);location.href='home.html'};
+const wait=t=>{if(document.querySelector('.rdr'))return;const st=document.createElement('style');st.textContent='.rdr{position:fixed;inset:0;z-index:60;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}.rdc{width:84px;height:84px;border-radius:50%;border:4px solid #000;background:#fde047;box-shadow:4px 4px 0 #000;animation:fl 1.1s ease-in-out infinite}.rdb{width:min(220px,60vw);height:8px;border:2px solid #000;border-radius:99px;overflow:hidden}.rdb i{display:block;height:100%;width:40%;background:#111;animation:sl 1s ease-in-out infinite}@keyframes fl{to{transform:rotateY(360deg)}}@keyframes sl{0%{margin-left:-40%}100%{margin-left:100%}}@media(prefers-reduced-motion:reduce){.rdc,.rdb i{animation:none}}';document.head.append(st);const o=document.createElement('div');o.className='rdr';o.setAttribute('role','status');o.innerHTML='<div class="rdc"></div><b style="font-size:1.15rem"></b><div class="rdb"><i></i></div>';o.querySelector('b').textContent=t;document.body.append(o)};
+const go=t=>{localStorage.setItem('fp_t',t);wait('Signing you in…');location.href='home.html'};
+if(localStorage.getItem('fp_t')&&localStorage.getItem('fp_t')!=='undefined'){wait('Taking you home…');location.href='home.html'}
 const post=async b=>{const r=await fetch('/api',{method:'POST',body:JSON.stringify(b)});const j=await r.json();if(!r.ok||!j.token)throw new Error(j.error||'Server error');return j.token};
 const V='https://www.gstatic.com/firebasejs/10.12.2/';
 const sdk=Promise.all([import(V+'firebase-app.js'),import(V+'firebase-auth.js')]);sdk.catch(()=>{});
