@@ -13,7 +13,7 @@
 <script type="module">
 $('#sp').innerHTML=platBar();platBind();
 const yt=plat==='youtube',RT=(n,v)=>`<div class="row"><span>${n}</span><b>${v}</b></div>`;
-$('#rt').onclick=()=>box('Earn rates',(yt?RT('Subscribe','+2 points'):RT('Follow','+2 points'))+RT('Like','+1 point')+RT('Views','+1 point')+RT('Comment','+1 point')+(yt?RT('Watch time','+6 points / minute')+'<p class="m">Watch tasks are up to 15 minutes each.</p>':''));
+$('#rt').onclick=()=>box('Earn rates',(yt?RT('Subscribe','+1 point'):RT('Follow','+2 points'))+RT('Like','+1 point')+RT('Views','+1 point')+RT('Comment','+1 point')+(yt?RT('Watch time','+6 points / minute')+'<p class="m">Watch tasks are up to 15 minutes each.</p>':''));
 const IC={subscribe:'bell',follow:'follow',like:'heart',views:'eye',comment:'msg',watch:'clock'};
 const TP={normal:'',premium:'Premium ',ultra:'Ultra premium '},AC={subscribe:'Subscribe',follow:'Follow',like:'Like',views:'View',comment:'Comment',watch:'Start watching'};
 const NT={subscribe:'subscribe',follow:'follow',like:'like',views:'view',comment:'comment',watch:'watch time'};
