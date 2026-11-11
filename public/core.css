@@ -221,11 +221,6 @@ body[data-page="home"]{background:radial-gradient(1200px 500px at 50% -120px,#e0
 .wl .sp{width:44px;height:44px;border-width:5px}
 button .sp{vertical-align:-3px;margin-right:6px}
 /* boost: priority cards, benefits, total */
-.prg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0}
-button.prc{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;padding:12px 6px;min-height:126px;background:#fff;color:#000;border:2px solid #000;border-radius:14px;text-align:center}
-button.prc.sel{background:#fde047;box-shadow:3px 3px 0 #000}
-button.prc .pr{font-weight:800}
-button.prc .rec{font-size:.7rem;background:#000;color:#fff;border-radius:999px;padding:2px 8px}
 .pbn{display:flex;gap:12px;align-items:flex-start;border:2px solid #000;border-radius:14px;padding:12px 14px;margin:10px 0}
 .pbn .ic{width:1.8em;height:1.8em;flex:none}
 .pbn p,.pbn ul{margin:.3em 0 0}.pbn ul{padding-left:1.1em}
@@ -244,3 +239,14 @@ button.cat .big-ic{background:#fff;color:#000;margin-bottom:6px}
 button:not(.o) .sp{border-color:rgba(255,255,255,.35);border-top-color:#fff}
 button .sp{width:18px;height:18px}
 .ov{z-index:80}
+
+/* ===== v20: priority tier cards ===== */
+.tg{display:grid;grid-template-columns:1fr;gap:12px;margin:8px 0 4px}
+@media(min-width:640px){.tg{grid-template-columns:repeat(3,1fr);gap:14px}}
+button.tier{--a:#64748b;--b:#f8fafc;position:relative;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"ic nm pr" "ls ls ls";align-items:center;gap:6px 14px;width:100%;margin:0;padding:14px;min-height:0;text-align:left;font-weight:400;color:#000;background:#fff;border:2px solid #000;border-radius:18px;cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s}
+button.tier.premium{--a:#d97706;--b:#fffbeb}
+button.tier.ultra{--a:#7c3aed;--b:#f5f3ff}
+button.tier:focus-visible{outline:3px solid var(--a);outline-offset:3px}
+@media(hover:hover){button.tier:hover{transform:translateY(-2px)}}
+button.tier.sel{background:var(--b);border-color:var(--a);border-width:3px;padding:13px;box-shadow:0 6px 0 var(--a)}
+button.tier .tic{grid-area:ic;width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var
