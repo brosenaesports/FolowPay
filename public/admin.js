@@ -209,5 +209,7 @@ module.exports = async (b, R) => {
     const months = Object.entries(mo).sort().reverse().slice(0, 12).map(([k, v]) => ({ m: k, got: r2(v.got), smm: r2(v.smm), rew: r2(v.rew), pts: v.pts }));
     return R(200, { received: per(rv), points: per(pt), smm: per(sm), rewards: per(rw), rewardsBy: by, months });
   }
+  if (a.startsWith('admClean')) return require('./cleanup')(b, R);          // Cleanup page: delete old tickets, orders, transactions, inactive guests
+  if (a.startsWith('admPm')) return require('./premium').admin(b, R);      // Premium booster (wallet / panel orders / tickets)
   return R(400, { error: 'Unknown admin action' });
 };
