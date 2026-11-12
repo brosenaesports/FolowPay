@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><meta name="theme-color" content="#0b1020">
+<title>Premium Orders – FollowPay</title>
+<link rel="stylesheet" href="/premium.css?v=2">
+</head><body>
+<div id="shell"></div>
+<script src="/pm.js?v=2"></script>
+<script type="module">
+shell('orders');
+const app=$('#app');
+let ORD=[],TK=[],view='orders',flt='all';
+app.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h1 style="margin:.2em 0">My orders</h1><button class="sm dark" id="rf">${I('refresh')} Refresh</button></div>
+<p class="m" style="margin-top:0">Every order shows the order number from the booster service. To get help, open the order and tap <b>Raise ticket</b>.</p>
+<div class="chips" id="vw"></div><div class="chips" id="fl"></div><div id="ls"></div>`;
+// one clear bucket per order: pending (queued), progress (running), done, closed
+const bk=o=>{const t=String(o.status||'').toLowerCase();
+  if(/^completed/.test(t))return 'done';
+  if(/^(partial|canceled|cancelled|refunded|fail)/.test(t))return 'closed';
+  if(/^(in progress|processing)/.test(t)||(o.remains!=null&&o.remains<o.qty))return 'progress';
+  return 'pending'};
+const BL={pending:['p','Pending','a'],progress:['i','In progress','b'],done:['c','Completed','g']};
+const SB=o=>{const k=bk(o);if(k!=='closed')return BL[k];return /^partial/i.test(o.status)?['r','Partial','v']:['x','Canceled','r']};
+const RB=s=>/^completed/i.test(s)?['Completed','g']:/^(rejected|canceled|cancelled|error|fail)/i.test(s)?['Not approved','r']:/^(in progress|processing)/i.test(s)?['In progress','b']:['Pending','a'];
+const TS={open:['Open','a'],processing:['In progress','b'],solved:['Solved','g']};
+const done=o=>bk(o)==='done';
+function card(o){
+  const [cls,label,bc]=SB(o),del=o.remains!=null?Math.max(0,o.qty-o.remains):(done(o)?o.qty:0),pct=Math.min(100,Math.round(del/o.qty*100)),
+    openRf=o.refills.find(f=>!/^(completed|rejected|canceled|cancelled|error|failed)/i.test(f.status));
+  return `<article class="card od s-${cls}"><div class="oh"><span class="pi pf-${o.p}">${pIcon(o.p)}</span><div style="flex:1;min-width:0"><h2>${esc(o.name)}</h2><a class="lk" href="${esc(o.link)}" target="_blank" rel="noopener">${esc(o.link)}</a></div><span class="bdg ${bc}">${label}</span></div>
+  <div style="margin:8px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${o.panel?`<button type="button" class="num" data-cp="${esc(o.panel)}" aria-label="Copy order number">${I('copy')} Order #${esc(o.panel)}</button>`:'<span class="bdg a">Order number pending</span>'}<span class="m">${dt(o.created)}</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div><div class="m">${del.toLocaleString('en-IN')} of ${o.qty.toLocaleString('en-IN')} · ${pct}%${o.start!=null?' · started at '+o.start.toLocaleString('en-IN'):''}</div>
+  <div class="kv"><span>Paid</span><b>${INR(o.price)}</b></div>${o.refunded>0?`<div class="kv"><span>Returned to wallet</span><b style="color:var(--green)">${INR(o.refunded)}</b></div>`:''}
+  ${o.refills.map(f=>{const [n,c]=RB(f.status);return `<div class="kv"><span>${I('refresh')} Refill #${esc(f.id)}</span><span class="bdg ${c}">${n}</span></div>`}).join('')}
+  ${o.tickets.map(t=>{const [n,c]=TS[t.status]||TS.open;return `<div class="tk"><span class="bdg ${c}">${I('ticket')} Ticket · ${n}</span><div style="margin-top:4px">${esc(t.msg)}</div>${t.note?`<div class="m" style="margin-top:4px">${I('info')} Reply: ${esc(t.note)}</div>`:''}</div>`}).join('')}
+  <div class="acts">${o.canRefill?(done(o)&&!openRf?`<button data-rf="${o.id}">${I('refresh')} Request refill</button>`:`<button disabled>${I('refresh')} ${openRf?'Refill in progress':'Refill after completion'}</button>`):`<span class="bdg n" style="justify-content:center;min-height:44px">No refill for this service</span>`}
+  <button class="ghost" data-tk="${o.id}">${I('ticket')} Raise ticket</button></div></article>`}
+function draw(){
+  const cnt=k=>ORD.filter(o=>bk(o)===k).length;
+  $('#vw').innerHTML=[['orders','Orders',ORD.length],['tickets','Tickets',TK.length]].map(([k,n,c])=>`<button type="button" class="${k===view?'on':''}" data-v="${k}">${n} (${c})</button>`).join('');
+  $('#fl').hidden=view!=='orders';
+  $('#fl').innerHTML=[['all','All',ORD.length],['pending','Pending',cnt('pending')],['progress','In progress',cnt('progress')],['done','Completed',cnt('done')],['closed','Closed',cnt('closed')]].map(([k,n,c])=>`<button type="button" class="${k===flt?'on':''}" data-f="${k}">${n} (${c})</button>`).join('');
+  if(view==='orders'){
+    const l=ORD.filter(o=>flt==='all'||bk(o)===flt);
+    $('#ls').innerHTML=l.map(card).join('')||`<div class="card"><b>${ORD.length?'No orders in this filter':'No orders yet'}</b><p class="m">${ORD.length?'Try another filter.':'Place your first order on the Booster page.'}</p>${ORD.length?'':'<a class="pmbtn" href="premium.html">'+I('bolt')+' Go to Booster</a>'}</div>`;
+  }else{
+    $('#ls').innerHTML=TK.map(t=>{const [n,c]=TS[t.status]||TS.open;return `<article class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><span class="bdg ${c}">${I('ticket')} ${n}</span><span class="m">${dt(t.at)}</span></div><p style="margin:.6em 0 0"><span class="num" style="cursor:default">Order #${esc(t.panel||'pending')}</span> <span class="m">${esc(t.name)}</span></p><div class="tk">${esc(t.msg)}</div>${t.note?`<p class="m" style="margin:0">${I('info')} Reply: ${esc(t.note)}</p>`:'<p class="m" style="margin:0">We will reply here as soon as possible.</p>'}</article>`}).join('')||'<div class="card"><b>No tickets yet</b><p class="m">To raise a ticket, open an order and tap Raise ticket.</p></div>';
+  }
+}
+// tickets always belong to an order
+const setOrders=l=>{ORD=l;TK=l.flatMap(o=>o.tickets.map(t=>({...t,oid:o.id,panel:o.panel,name:o.name}))).sort((a,b)=>b.at-a.at);draw()};
+let syncing=false;
+async function load(quiet){            // 1) show saved data at once  2) refresh statuses from the booster service
+  try{setOrders((await api('pmOrders',{fast:true})).orders)}
+  catch(e){if(!quiet)$('#ls').innerHTML=`<div class="card"><b>Could not load orders</b><p class="m">${esc(e.message)}</p></div>`;return}
+  if(syncing)return;syncing=true;
+  try{setOrders((await api('pmOrders')).orders)}catch(e){}finally{syncing=false}
+}
+function ticket(oid){
+  const o=ORD.find(x=>x.id===oid);if(!o)return;
+  const d=document.createElement('div');d.className='pmov';
+  d.innerHTML=`<div class="pmpop" role="dialog" aria-modal="true"><b>Raise a ticket</b><p class="m" style="margin:.4em 0">${esc(o.name)}<br>${o.panel?'<span class="num" style="cursor:default">Order #'+esc(o.panel)+'</span>':'<span class="bdg a">Order number pending</span>'}</p><label for="tm">What is the problem?</label><textarea id="tm" maxlength="600" placeholder="Describe the problem with this order…"></textarea>
+  <div class="pmbtns"><button type="button" class="ghost" data-x>Cancel</button><button type="button" id="ts">Send ticket</button></div></div>`;
+  d.onclick=e=>{if(e.target===d||e.target.closest('[data-x]'))d.remove()};document.body.append(d);$('#tm',d).focus();
+  $('#ts',d).onclick=async()=>{const m=$('#tm',d).value.trim();if(m.length<5)return say('Write at least 5 characters.','Message needed');
+    d.style.display='none';
+    try{await withBusy('Sending your ticket…',()=>api('pmTicket',{orderId:oid,message:m}),0);d.remove();await say('Your ticket was sent. We will reply on this order.','Ticket sent');view='tickets';await load(true)}
+    catch(e){d.style.display='';say(e.message,'Could not send ticket')}};
+}
+app.addEventListener('click',async e=>{
+  const v=e.target.closest('[data-v]'),f=e.target.closest('[data-f]'),cp=e.target.closest('[data-cp]'),rf=e.target.closest('[data-rf]'),tk=e.target.closest('[data-tk]');
+  if(v){view=v.dataset.v;draw()}else if(f){flt=f.dataset.f;draw()}
+  else if(cp)navigator.clipboard.writeText(cp.dataset.cp).then(()=>say('Order number copied.','Copied')).catch(()=>say('Order number: '+cp.dataset.cp))
+  else if(tk)ticket(tk.dataset.tk)
+  else if(rf){if(!await yes('Request a refill?','We will ask the booster service to refill this order. You can request again after 24 hours if needed.','Request refill'))return;
+    try{await withBusy('Requesting your refill…',()=>api('pmRefill',{orderId:rf.dataset.rf}),0);await say('Refill requested. The status will update here.','Refill requested');load(true)}catch(er){say(er.message,'Could not request refill')}}
+});
+$('#rf').onclick=()=>withBusy('Refreshing your orders…',()=>load(),0);
+api('pmWallet',{lite:true}).then(w=>setBal(w.bal)).catch(()=>{});
+await withBusy('Loading your orders…',()=>load(),0);
+setInterval(()=>{if(!document.hidden&&!$('.pmov'))load(true)},30000);
+</script></body></html>
