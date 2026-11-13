@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.webp" type="image/webp"><meta name="theme-color" content="#0b1020">
+<title>Premium Profile Booster – FollowPay</title>
+<link rel="stylesheet" href="/premium.css?v=4">
+</head><body>
+<div id="shell"></div>
+<script src="/pm.js?v=4"></script>
+<script type="module">
+shell('booster');
+const app=$('#app');
+const COL={youtube:'#ff0000',instagram:'#dd2a7b',telegram:'#229ed9',whatsapp:'#25d366',x:'#000',facebook:'#1877f2'};
+let bal=0,plat=null,svcs=[],cat='',q='',sel=null,shown=40,guest=false;
+app.innerHTML=`<section class="pmhero"><h1>Premium Profile Booster</h1><p>Grow YouTube, Instagram, Telegram, WhatsApp Channels, X and more. Pay in rupees from your own wallet.</p>
+<div class="pmbal"><div><small>Wallet balance</small><b id="hb">₹0.00</b></div><a class="pmbtn" href="premium-wallet.html">${I('plus')} Add money</a></div></section>
+<div id="gw"></div>
+<div class="step"><i>1</i><h2>Choose a platform</h2></div><div id="pl"><div class="ldg"><span class="sp"></span> Loading platforms…</div></div>
+<div id="s2" hidden><div class="step"><i>2</i><h2>Choose a service</h2></div>
+<div class="card" style="margin-top:0"><label for="sq">Search</label><input id="sq" type="search" placeholder="Search followers, likes, views…" autocomplete="off"><label for="sc">Category</label><select id="sc"></select></div>
+<div id="sl"></div></div>
+<div id="s3" hidden></div>`;
+const setB=n=>{bal=n;setBal(n);$('#hb').textContent=INR(n)};
+function plats(l){
+  $('#pl').innerHTML=l.length?`<div class="pmg" role="radiogroup" aria-label="Platform">${l.map(p=>`<button type="button" class="pmp${plat===p.k?' sel':''}" role="radio" aria-checked="${plat===p.k}" data-k="${p.k}"><span class="pi pf-${p.k}">${pIcon(p.k)}</span><b>${esc(p.n)}</b><small>${p.c} services</small></button>`).join('')}</div>`:'<div class="card"><b>No services available yet</b><p class="m">Please check back soon.</p></div>';
+  $$('#pl [data-k]').forEach(b=>b.onclick=()=>pick(b.dataset.k,l));
+}
+async function pick(k,l){
+  plat=k;sel=null;cat='';q='';shown=40;$('#sq').value='';$('#s3').hidden=true;plats(l);
+  $('#s2').hidden=false;$('#sl').innerHTML='';
+  try{
+    let r=null;try{const c=JSON.parse(sessionStorage.getItem('pm_s_'+k)||'null');if(c&&Date.now()-c.t<300000)r=c.r}catch{}
+    if(!r){r=await withBusy('Loading services…',()=>api('pmServices',{platform:k}),0);try{sessionStorage.setItem('pm_s_'+k,JSON.stringify({t:Date.now(),r}))}catch{}}
+    svcs=r.services;
+    const cats=[...new Set(svcs.map(s=>s.c))].sort();
+    $('#sc').innerHTML=`<option value="">All categories (${svcs.length})</option>`+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    list();$('#s2').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){$('#sl').innerHTML=`<div class="card"><b>Could not load services</b><p class="m">${esc(e.message)}</p></div>`}
+}
+function list(){
+  const t=q.trim().toLowerCase(),l=svcs.filter(s=>(!cat||s.c===cat)&&(!t||(s.n+' '+s.c).toLowerCase().includes(t)));
+  $('#sl').innerHTML=(l.slice(0,shown).map(s=>`<button type="button" class="sv${sel&&sel.id===s.id?' sel':''}" data-i="${s.id}"><span class="sn">${esc(s.n)}</span><span class="sc">${esc(s.c)}</span><span class="sr"><span class="rt">${INR(s.rate)} <small style="font-weight:600;color:var(--mut)">per 1000</small></span><span class="bdg n">${s.mn.toLocaleString('en-IN')} – ${s.mx.toLocaleString('en-IN')}</span>${s.f?`<span class="bdg g">${I('shield')} Refill</span>`:'<span class="bdg n">No refill</span>'}</span></button>`).join('')||'<div class="card"><p class="m">No services match your search.</p></div>')
+   +(l.length>shown?`<button type="button" class="ghost wide" id="mr">Show more (${l.length-shown} left)</button>`:'');
+  $$('#sl [data-i]').forEach(b=>b.onclick=()=>choose(svcs.find(s=>s.id==b.dataset.i)));
+  if($('#mr'))$('#mr').onclick=()=>{shown+=40;list()};
+}
+const price=(s,n)=>Math.max(1,Math.ceil(s.u*n/1000*100-1e-7))/100;
+function choose(s){
+  sel=s;list();const c=s.t==='c',s3=$('#s3');s3.hidden=false;
+  s3.innerHTML=`<div class="step"><i>3</i><h2>Order details</h2></div><div class="card" style="margin-top:0">
+  <div class="oh"><span class="pi pf-${plat}" style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid var(--navy);flex:none">${pIcon(plat)}</span><div><b>${esc(s.n)}</b><div class="m">${INR(s.rate)} per 1000 · ${s.mn.toLocaleString('en-IN')} to ${s.mx.toLocaleString('en-IN')}</div></div></div>
+  ${s.d?`<p class="m" style="margin:.6em 0 0">${esc(s.d)}</p>`:''}
+  <label for="lk">Link</label><p class="lnk">Paste the full link. A username will not work.</p>
+  <input id="lk" type="url" placeholder="${esc(LPH[plat]||'https://…')}" autocomplete="off" autocapitalize="off" inputmode="url">
+  ${c?`<label for="cm">Comments (one per line)</label><textarea id="cm" placeholder="Great post!&#10;Love this&#10;Amazing content"></textarea><p class="m" id="cn"></p>`:`<label for="qt">Quantity</label><input id="qt" type="number" inputmode="numeric" min="${s.mn}" max="${s.mx}" placeholder="${s.mn.toLocaleString('en-IN')} to ${s.mx.toLocaleString('en-IN')}">`}
+  <div class="tot"><span>Total</span><b id="tv">₹0.00</b></div><p class="m" id="tb" style="text-align:center;margin:.2em 0 0"></p>
+  <div class="note info">${I('info')}<div>Make sure your link is correct and public. Wrong or private links can make an order fail.</div></div>
+  <button id="go" class="wide">${I('bolt')} Place order</button></div>`;
+  const qty=()=>c?$('#cm').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).length:Math.floor(+$('#qt').value||0);
+  const upd=()=>{const n=qty(),ok=n>=s.mn&&n<=s.mx,p=ok?price(s,n):0;
+    $('#tv').textContent=INR(p);if(c)$('#cn').textContent=n+' comment'+(n===1?'':'s')+' · allowed '+s.mn+' to '+s.mx;
+    $('#tb').innerHTML=!n?'Enter the amount you want.':!ok?`<span style="color:var(--red)">Allowed: ${s.mn.toLocaleString('en-IN')} to ${s.mx.toLocaleString('en-IN')}</span>`:`Wallet: <b>${INR(bal)}</b>`+(p>bal?` · <b style="color:var(--red)">Add ${INR(p-bal)} more</b> · <a href="premium-wallet.html">Add money</a>`:` · after order <b>${INR(bal-p)}</b>`);
+    $('#go').textContent=ok?`Pay ${INR(p)} and place order`:'Place order'};
+  (c?$('#cm'):$('#qt')).oninput=upd;upd();
+  $('#go').onclick=async()=>{
+    const n=qty(),link=toLink($('#lk').value);
+    if(!link)return say('Please paste the full link, for example '+(LPH[plat]||'https://…').split(' or ')[0]+'. A username will not work.','Link needed');
+    if(!(n>=s.mn&&n<=s.mx))return say(`Enter between ${s.mn.toLocaleString('en-IN')} and ${s.mx.toLocaleString('en-IN')}.`,'Check quantity');
+    const p=price(s,n);
+    if(p>bal)return dlg('Not enough balance',`<p>You need <b>${INR(p)}</b> but your wallet has <b>${INR(bal)}</b>.</p><a class="pmbtn wide" href="premium-wallet.html">${I('plus')} Add money</a>`,[['Close',0,'ghost']]);
+    if(!await yes('Place this order?',`<b>${esc(s.n)}</b><br>${n.toLocaleString('en-IN')} for <b>${INR(p)}</b>.<br>The money is taken from your wallet now.`,'Pay '+INR(p)))return;
+    try{const r=await withBusy('Placing your order…',()=>api('pmOrder',{service:s.id,link,quantity:n,comments:c?$('#cm').value:undefined}),0);setB(r.bal);
+      $('#lk').value='';(c?$('#cm').value='':$('#qt').value='');upd();
+      const v=await dlg('Order placed',`<p>${r.panel?`Your order number is <b style="font-size:1.4rem">#${esc(r.panel)}</b>`:'We are confirming your order with the booster service.'}</p><p class="m">Track it, request a refill or raise a ticket from the Orders page.</p>`,[['Place another',0,'ghost'],['View orders',1]]);
+      if(v)location.href='premium-orders.html';
+    }catch(e){if(e.short)dlg('Not enough balance','<p>Your wallet does not have enough money for this order.</p><a class="pmbtn wide" href="premium-wallet.html">Add money</a>',[['Close',0,'ghost']]);else say(e.message,'Could not place order')}};
+  s3.scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('#sq').oninput=e=>{q=e.target.value;shown=40;list()};
+$('#sc').onchange=e=>{cat=e.target.value;shown=40;list()};
+const doneLoad=busy('Loading Premium Booster…',0);
+try{
+  const [w,p]=await Promise.all([api('pmWallet',{lite:true}),api('pmPlatforms')]);
+  setB(w.bal);plats(p.platforms);doneLoad();
+  api('me').then(me=>{if(me.user&&me.user.guest)$('#gw').innerHTML=guestNote()}).catch(()=>{});
+}catch(e){doneLoad();$('#pl').innerHTML=`<div class="card"><b>Premium Booster is not available right now</b><p class="m">${esc(e.message)}</p></div>`}
+</script></body></html>

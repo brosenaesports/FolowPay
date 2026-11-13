@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+Disallow: /api
+Disallow: /pic
+Disallow: /admin.html
+Disallow: /home.html
+Disallow: /boost.html
+Disallow: /orders.html
+Disallow: /earn.html
+Disallow: /buy.html
+Disallow: /store.html
+Disallow: /refer.html
+Disallow: /status.html
+Disallow: /premium
+Disallow: /.netlify/
+
+Sitemap: https://follow-pay.netlify.app/sitemap.xml
