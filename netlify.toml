@@ -1,0 +1,57 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api"
+  to = "/.netlify/functions/api"
+  status = 200
+
+[[redirects]]
+  from = "/pic"
+  to = "/.netlify/functions/pic"
+  status = 200
+
+
+# clean, keyword URLs for the public pages
+[[redirects]]
+  from = "/smm-panel"
+  to = "/smm-panel.html"
+  status = 200
+[[redirects]]
+  from = "/free-followers"
+  to = "/free-followers.html"
+  status = 200
+[[redirects]]
+  from = "/earn-money"
+  to = "/earn-money.html"
+  status = 200
+
+# speed: versioned CSS/JS (?v=NN in the page) can be cached for a year; HTML is always revalidated
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+[[headers]]
+  for = "/lumapush-sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[functions."purge"]
+  schedule = "@daily"
