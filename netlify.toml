@@ -14,3 +14,6 @@
   from = "/pic"
   to = "/.netlify/functions/pic"
   status = 200
+
+[functions."purge"]
+  schedule = "@daily"
